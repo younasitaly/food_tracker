@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracciatore Alimenti</title>
+  <style>
+    body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
+    h2 { text-align: center; color: #4CAF50; }
+    input, button {
+      width: 100%; padding: 10px; margin: 5px 0;
+      font-size: 16px;
+    }
+    button {
+      background-color: #4CAF50; color: white; border: none; font-weight: bold;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 10px; background: white;
+    }
+    th, td {
+      border: 1px solid #ddd; padding: 8px; font-size: 14px; text-align: center;
+    }
+    .expired { background-color: #ffcccc; }
+    .expiring-soon { background-color: #fff3cd; }
+  </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<h2>🍲 Tracciatore Alimenti (Cloud + Auto Suggerimenti)</h2>
+
+<input id="itemName" placeholder="Nome Prodotto" type="text" list="productNames" />
+<datalist id="productNames"></datalist>
+<input id="datePrepared" placeholder="Data di Preparazione" type="date" />
+<input id="expiryDate" placeholder="Data di Scadenza" type="date" />
+<button onclick="addItem()">Aggiungi</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Prodotto</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody id="itemTable"></tbody>
+</table>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBlKg9cl30Gg34nyUWsRz6ahIYZOjahTQU",
+    authDomain: "foodtracker-17b2f.firebaseapp.com",
+    projectId: "foodtracker-17b2f",
+    storageBucket: "foodtracker-17b2f.firebasestorage.app",
+    messagingSenderId: "836540567170",
+    appId: "1:836540567170:web:063e592fdbb263b14fae9b"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const itemsRef = db.collection("foodItems");
+
+  function addItem() {
+    const name = document.getElementById("itemName").value.trim();
+    const prepared = document.getElementById("datePrepared").value;
+    const expiry = document.getElementById("expiryDate").value;
+
+    if (!name || !prepared || !expiry) {
+      alert("Per favore, completa tutti i campi."); return;
+    }
+
+    itemsRef.add({ name, prepared, expiry }).then(() => {
+      document.getElementById("itemName").value = '';
+      document.getElementById("datePrepared").value = '';
+      document.getElementById("expiryDate").value = '';
+    });
+  }
+
+  function deleteItem(id) {
+    if (confirm("Vuoi eliminare questo prodotto?")) {
+      itemsRef.doc(id).delete();
+    }
+  }
+
+  function editItem(id, current) {
+    const newName = prompt("Modifica nome prodotto:", current.name);
+    const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
+    const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
+    if (newName && newPrepared && newExpiry) {
+      itemsRef.doc(id).set({
+        name: newName,
+        prepared: newPrepared,
+        expiry: newExpiry
+      });
+    }
+  }
+
+  function formatDate(dateStr) {
+    const [y, m, d] = dateStr.split("-"); return `${d}/${m}/${y}`;
+  }
+
+  function renderItems(snapshot) {
+    const table = document.getElementById("itemTable");
+    table.innerHTML = "";
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    const seenNames = new Set();
+    const datalist = document.getElementById("productNames");
+    datalist.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      const item = doc.data();
+      const id = doc.id;
+
+      // suggestions list
+      if (!seenNames.has(item.name)) {
+        seenNames.add(item.name);
+        const opt = document.createElement("option");
+        opt.value = item.name;
+        datalist.appendChild(opt);
+      }
+
+      const expiryDate = new Date(item.expiry);
+      const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+      let status = "", rowClass = "";
+      if (expiryDate < today) { status = "Scaduto"; rowClass = "expired"; }
+      else if (daysLeft <= 1) { status = "In Scadenza"; rowClass = "expiring-soon"; }
+      else { status = `${daysLeft} giorni rimasti`; }
+
+      const row = document.createElement("tr");
+      row.className = rowClass;
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${formatDate(item.prepared)}</td>
+        <td>${formatDate(item.expiry)}</td>
+        <td>${status}</td>
+        <td>
+          <button onclick="editItem('${id}', ${JSON.stringify(item)})">✏️</button>
+          <button onclick="deleteItem('${id}')">🗑️</button>
+        </td>`;
+      table.appendChild(row);
+    });
+  }
+
+  itemsRef.orderBy("expiry").onSnapshot(renderItems);
+</script>
+</body>
+</html>
