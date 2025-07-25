@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Tracciatore Alimenti</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 10px;
+      background: #f4f4f4;
+    }
+    h2 { text-align: center; color: #4CAF50; }
+    input, button {
+      width: 100%; padding: 10px; margin: 5px 0;
+      font-size: 16px;
+    }
+    button {
+      background-color: #4CAF50; color: white; border: none; font-weight: bold;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 10px; background: white;
+    }
+    th, td {
+      border: 1px solid #ddd; padding: 8px; font-size: 14px; text-align: center;
+    }
+    .expired { background-color: #ffcccc; }
+    .expiring-soon { background-color: #fff3cd; }
+  </style>
+</head>
+<body>
+<h2>🍲 Tracciatore Alimenti</h2>
+<input id="itemName" placeholder="Nome Prodotto" required type="text" />
+<input id="itemQuantity" placeholder="Quantità" required type="number" min="1" />
+<input id="datePrepared" placeholder="Data di Preparazione" required type="date" />
+<input id="expiryDate" placeholder="Data di Scadenza" required type="date" />
+<button onclick="addItem()">Aggiungi</button>
+<table>
+  <thead>
+    <tr>
+      <th>Prodotto</th><th>Qtà</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody id="itemTable"></tbody>
+</table>
+<script>
+  let items = JSON.parse(localStorage.getItem("foodItems") || "[]");
+  function saveItems() {
+    localStorage.setItem("foodItems", JSON.stringify(items));
+    renderItems();
+  }
+  function addItem() {
+    const name = document.getElementById("itemName").value.trim();
+    const quantity = parseInt(document.getElementById("itemQuantity").value.trim());
+    const prepared = document.getElementById("datePrepared").value;
+    const expiry = document.getElementById("expiryDate").value;
+    if (!name || !quantity || !prepared || !expiry) {
+      alert("Per favore, completa tutti i campi."); return;
+    }
+    items.push({ name, quantity, prepared, expiry });
+    saveItems();
+    document.getElementById("itemName").value = '';
+    document.getElementById("itemQuantity").value = '';
+    document.getElementById("datePrepared").value = '';
+    document.getElementById("expiryDate").value = '';
+  }
+  function deleteItem(index) {
+    if (confirm("Vuoi eliminare questo prodotto?")) {
+      items.splice(index, 1); saveItems();
+    }
+  }
+  function editItem(index) {
+    const item = items[index];
+    const newName = prompt("Modifica nome prodotto:", item.name);
+    const newQuantity = prompt("Modifica quantità:", item.quantity);
+    const newPrepared = prompt("Modifica data di preparazione:", item.prepared);
+    const newExpiry = prompt("Modifica data di scadenza:", item.expiry);
+    if (newName && newQuantity && newPrepared && newExpiry) {
+      items[index] = {
+        name: newName, quantity: parseInt(newQuantity),
+        prepared: newPrepared, expiry: newExpiry
+      }; saveItems();
+    }
+  }
+  function formatDate(dateStr) {
+    const [y, m, d] = dateStr.split("-"); return `${d}/${m}/${y}`;
+  }
+  function renderItems() {
+    const table = document.getElementById("itemTable");
+    table.innerHTML = "";
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    items.forEach((item, index) => {
+      const expiryDate = new Date(item.expiry);
+      const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+      let status = "", rowClass = "";
+      if (expiryDate < today) { status = "Scaduto"; rowClass = "expired"; }
+      else if (daysLeft <= 1) { status = "In Scadenza"; rowClass = "expiring-soon"; }
+      else { status = `${daysLeft} giorni rimasti`; }
+      const row = document.createElement("tr");
+      row.className = rowClass;
+      row.innerHTML = `
+        <td>${item.name}</td><td>${item.quantity}</td>
+        <td>${formatDate(item.prepared)}</td>
+        <td>${formatDate(item.expiry)}</td>
+        <td>${status}</td>
+        <td>
+          <button onclick="editItem(${index})">✏️</button>
+          <button onclick="deleteItem(${index})">🗑️</button>
+        </td>`;
+      table.appendChild(row);
+    });
+  }
+  function checkExpiringSoon() {
+    const now = new Date();
+    items.forEach(item => {
+      const expiry = new Date(item.expiry);
+      const hoursLeft = (expiry - now) / (1000 * 60 * 60);
+      if (hoursLeft > 0 && hoursLeft <= 24) {
+        alert(`⚠️ ${item.name} scade tra meno di 24 ore!`);
+      }
+    });
+  }
+  renderItems(); checkExpiringSoon();
+</script>
+</body>
+</html>
