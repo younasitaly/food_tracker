@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracciatore Alimenti</title>
+  <style>
+    body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
+    h2 { text-align: center; color: #4CAF50; }
+    input, button {
+      width: 100%; padding: 10px; margin: 5px 0;
+      font-size: 16px;
+    }
+    button {
+      background-color: #4CAF50; color: white; border: none; font-weight: bold;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 10px; background: white;
+    }
+    th, td {
+      border: 1px solid #ddd; padding: 8px; font-size: 14px; text-align: center;
+    }
+    .expired { background-color: #ffcccc; }
+    .expiring-soon { background-color: #fff3cd; }
+  </style>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<h2>🍲 Tracciatore Alimenti</h2>
+
+<input id="itemName" placeholder="Nome Prodotto" type="text" list="productList" />
+<datalist id="productList"></datalist>
+<input id="datePrepared" placeholder="Data di Preparazione" type="date" />
+<input id="expiryDate" placeholder="Data di Scadenza" type="date" />
+<button onclick="addItem()">Aggiungi</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>Prodotto</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
+    </tr>
+  </thead>
+  <tbody id="itemTable"></tbody>
+</table>
+</body>
+</html>
