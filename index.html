@@ -23,16 +23,14 @@
     .expired { background-color: #ffcccc; }
     .expiring-soon { background-color: #fff3cd; }
   </style>
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<h2>🍲 Tracciatore Alimenti (Salvato nel Cloud)</h2>
+<h2>🍲 Tracciatore Alimenti</h2>
 
-<input id="itemName" placeholder="Nome Prodotto" type="text" />
-<input id="itemQuantity" placeholder="Quantità" type="number" min="1" />
+<input id="itemName" placeholder="Nome Prodotto" type="text" list="productList" />
+<datalist id="productList"></datalist>
 <input id="datePrepared" placeholder="Data di Preparazione" type="date" />
 <input id="expiryDate" placeholder="Data di Scadenza" type="date" />
 <button onclick="addItem()">Aggiungi</button>
@@ -40,7 +38,7 @@
 <table>
   <thead>
     <tr>
-      <th>Prodotto</th><th>Qtà</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
+      <th>Prodotto</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
     </tr>
   </thead>
   <tbody id="itemTable"></tbody>
@@ -59,23 +57,24 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const itemsRef = db.collection("foodItems");
+  const namesRef = db.collection("productNames");
 
   function addItem() {
     const name = document.getElementById("itemName").value.trim();
-    const quantity = parseInt(document.getElementById("itemQuantity").value.trim());
     const prepared = document.getElementById("datePrepared").value;
     const expiry = document.getElementById("expiryDate").value;
 
-    if (!name || !quantity || !prepared || !expiry) {
-      alert("Per favore, completa tutti i campi."); return;
+    if (!name || !prepared || !expiry) {
+      alert("Per favore, completa tutti i campi.");
+      return;
     }
 
-    itemsRef.add({ name, quantity, prepared, expiry }).then(() => {
-      document.getElementById("itemName").value = '';
-      document.getElementById("itemQuantity").value = '';
-      document.getElementById("datePrepared").value = '';
-      document.getElementById("expiryDate").value = '';
-    });
+    itemsRef.add({ name, prepared, expiry });
+    namesRef.doc(name).set({ name }); // Save unique product name
+
+    document.getElementById("itemName").value = '';
+    document.getElementById("datePrepared").value = '';
+    document.getElementById("expiryDate").value = '';
   }
 
   function deleteItem(id) {
@@ -86,16 +85,11 @@
 
   function editItem(id, current) {
     const newName = prompt("Modifica nome prodotto:", current.name);
-    const newQuantity = prompt("Modifica quantità:", current.quantity);
     const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
     const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
-    if (newName && newQuantity && newPrepared && newExpiry) {
-      itemsRef.doc(id).set({
-        name: newName,
-        quantity: parseInt(newQuantity),
-        prepared: newPrepared,
-        expiry: newExpiry
-      });
+    if (newName && newPrepared && newExpiry) {
+      itemsRef.doc(id).set({ name: newName, prepared: newPrepared, expiry: newExpiry });
+      namesRef.doc(newName).set({ name: newName }); // Update suggestion list if changed
     }
   }
 
@@ -122,7 +116,7 @@
       const row = document.createElement("tr");
       row.className = rowClass;
       row.innerHTML = `
-        <td>${item.name}</td><td>${item.quantity}</td>
+        <td>${item.name}</td>
         <td>${formatDate(item.prepared)}</td>
         <td>${formatDate(item.expiry)}</td>
         <td>${status}</td>
@@ -134,7 +128,20 @@
     });
   }
 
+  function renderProductNames(snapshot) {
+    const datalist = document.getElementById("productList");
+    datalist.innerHTML = "";
+    snapshot.forEach(doc => {
+      const name = doc.data().name;
+      const opt = document.createElement("option");
+      opt.value = name;
+      datalist.appendChild(opt);
+    });
+  }
+
+  // Load all items and product names on start
   itemsRef.orderBy("expiry").onSnapshot(renderItems);
+  namesRef.orderBy("name").onSnapshot(renderProductNames);
 </script>
 </body>
 </html>
