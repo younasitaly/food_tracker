@@ -8,8 +8,7 @@
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
-  
-  <!-- ✅ Styles -->
+
   <style>
     body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
     h2 { text-align: center; color: #4CAF50; }
@@ -31,7 +30,7 @@
     #loginBox { max-width: 300px; margin: 60px auto; text-align: center; }
     #mainApp { display: none; }
 
-    /* ✅ Modern Logout Button */
+    /* ✅ Modern logout button */
     #logoutBtn {
       position: fixed;
       top: 1rem;
@@ -46,7 +45,7 @@
       cursor: pointer;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       transition: background-color 0.3s ease, transform 0.2s ease;
-      display: none; /* hidden by default */
+      display: none;
       z-index: 999;
     }
     #logoutBtn:hover {
@@ -58,8 +57,22 @@
     }
   </style>
 
-  <!-- ✅ Firebase & App Script -->
-  <script type="module" src="app.js"></script>
+  <!-- ✅ Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <!-- ✅ Initialize Firebase -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
+      authDomain: "food-tracker-fca47.firebaseapp.com",
+      projectId: "food-tracker-fca47",
+      storageBucket: "food-tracker-fca47.firebasestorage.app",
+      messagingSenderId: "769456892190",
+      appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </head>
 <body>
 
@@ -94,24 +107,15 @@
   </table>
 </div>
 
-<!-- ✅ Logout Script -->
-<script type="module">
-  import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  const auth = getAuth();
+<!-- ✅ Firebase Auth Handling -->
+<script>
+  const auth = firebase.auth();
 
   const logoutBtn = document.getElementById("logoutBtn");
   const loginBox = document.getElementById("loginBox");
   const mainApp = document.getElementById("mainApp");
 
-  logoutBtn.addEventListener("click", () => {
-    signOut(auth).then(() => {
-      location.reload();
-    }).catch((error) => {
-      console.error("Logout Error:", error);
-    });
-  });
-
-  onAuthStateChanged(auth, (user) => {
+  auth.onAuthStateChanged(user => {
     if (user) {
       logoutBtn.style.display = "inline-block";
       loginBox.style.display = "none";
@@ -122,7 +126,29 @@
       mainApp.style.display = "none";
     }
   });
+
+  logoutBtn.addEventListener("click", () => {
+    auth.signOut().then(() => {
+      location.reload();
+    }).catch((error) => {
+      alert("Errore logout: " + error.message);
+    });
+  });
+
+  function login() {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(error => {
+        alert("Errore login: " + error.message);
+      });
+  }
+
+  // 🔽 your app.js logic (addItem, render items, etc.) is still loaded separately
 </script>
+
+<!-- ✅ your original logic -->
+<script type="module" src="app.js"></script>
 
 </body>
 </html>
