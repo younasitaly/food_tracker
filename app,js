@@ -1,0 +1,61 @@
+// Simple login/logout toggle + basic app UI
+
+const loginBox = document.getElementById("loginBox");
+const mainApp = document.getElementById("mainApp");
+const logoutBtn = document.getElementById("logoutBtn");
+const loginBtn = document.getElementById("loginBtn");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+
+// Show login form
+function showLogin() {
+  loginBox.style.display = "block";
+  mainApp.style.display = "none";
+  logoutBtn.style.display = "none";
+}
+
+// Show main app + logout button
+function showApp() {
+  loginBox.style.display = "none";
+  mainApp.style.display = "block";
+  logoutBtn.style.display = "inline-block";
+}
+
+// Check login status on load
+function checkLoginStatus() {
+  if (localStorage.getItem("loggedIn") === "yes") {
+    showApp();
+  } else {
+    showLogin();
+  }
+}
+
+// Login handler
+loginBtn.onclick = () => {
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value.trim();
+
+  if (u === "Admin" && p === "Miraggio@46") {
+    localStorage.setItem("loggedIn", "yes");
+    showApp();
+  } else {
+    alert("Credenziali non valide");
+  }
+};
+
+// Logout handler
+logoutBtn.onclick = () => {
+  localStorage.removeItem("loggedIn");
+  showLogin();
+};
+
+// Init
+checkLoginStatus();
+
+// ----------------
+// Your full Firebase and app logic can be added below
+// For example:
+
+document.getElementById("addItemBtn").onclick = () => {
+  alert("Funzione per aggiungere prodotti qui");
+};
