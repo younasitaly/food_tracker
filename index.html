@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
 
+  <!-- ✅ Styles -->
   <style>
     body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
     h2 { text-align: center; color: #4CAF50; }
@@ -30,7 +31,7 @@
     #loginBox { max-width: 300px; margin: 60px auto; text-align: center; }
     #mainApp { display: none; }
 
-    /* ✅ Modern logout button */
+    /* ✅ Modern Logout Button */
     #logoutBtn {
       position: fixed;
       top: 1rem;
@@ -48,10 +49,12 @@
       display: none;
       z-index: 999;
     }
+
     #logoutBtn:hover {
       background-color: #dc2626;
       transform: scale(1.05);
     }
+
     #logoutBtn:active {
       transform: scale(0.95);
     }
@@ -60,8 +63,9 @@
   <!-- ✅ Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-  <!-- ✅ Initialize Firebase -->
+  <!-- ✅ Firebase Init -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
@@ -76,7 +80,7 @@
 </head>
 <body>
 
-<!-- 🔐 LOGIN -->
+<!-- 🔐 LOGIN BOX -->
 <div id="loginBox">
   <h3>Login Amministratore</h3>
   <input id="email" type="email" placeholder="Email" />
@@ -107,7 +111,7 @@
   </table>
 </div>
 
-<!-- ✅ Firebase Auth Handling -->
+<!-- ✅ Login & Logout Script -->
 <script>
   const auth = firebase.auth();
 
@@ -143,11 +147,9 @@
         alert("Errore login: " + error.message);
       });
   }
-
-  // 🔽 your app.js logic (addItem, render items, etc.) is still loaded separately
 </script>
 
-<!-- ✅ your original logic -->
+<!-- ✅ Your app logic -->
 <script type="module" src="app.js"></script>
 
 </body>
