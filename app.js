@@ -12,7 +12,7 @@ const firebaseConfig = {
   projectId: "food-tracker-fca47",
   storageBucket: "food-tracker-fca47.appspot.com",
   messagingSenderId: "769456892190",
-  appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+  appId: "1:769456892190:web:9c2a2d676f1f2d85010f"
 };
 
 // ✅ Init Firebase
@@ -21,16 +21,16 @@ const db = getFirestore(app);
 const itemsRef = collection(db, "foodItems");
 const namesRef = collection(db, "productNames");
 
-// ✅ Helpers
-function $(id) {
-  return document.getElementById(id);
-}
+// ✅ Helper for getElementById
+function $(id) { return document.getElementById(id); }
 
-// ✅ Login UI
+// ========================
+// LOGIN UI
+// ========================
 function showLogin() {
   document.body.innerHTML = `
     <h2 style="text-align:center; color:#4CAF50;">🔐 Accesso Amministratore</h2>
-    <div style="max-width: 400px; margin: 0 auto;">
+    <div style="max-width: 400px; margin: 30px auto;">
       <input id="username" placeholder="Username" style="width:100%; padding:10px; margin:10px 0;" />
       <input id="password" placeholder="Password" type="password" style="width:100%; padding:10px; margin:10px 0;" />
       <button onclick="checkLogin()" style="width:100%; padding:10px; background:#4CAF50; color:white; border:none;">Accedi</button>
@@ -38,32 +38,40 @@ function showLogin() {
   `;
 }
 
-// ✅ Logout button UI
+// ========================
+// LOGOUT BUTTON UI
+// ========================
 function showLogout() {
+  // Avoid duplicate logout button
+  if ($("logoutBtn")) return;
+
   const btn = document.createElement("button");
-  btn.textContent = "Logout";
-  btn.style = `
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    padding: 8px 14px;
-    background: #f44336;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-  `;
+  btn.id = "logoutBtn";
+  btn.textContent = "Esci";
+  btn.style.position = "fixed";
+  btn.style.top = "10px";
+  btn.style.right = "10px";
+  btn.style.padding = "8px 14px";
+  btn.style.background = "#f44336";
+  btn.style.color = "white";
+  btn.style.border = "none";
+  btn.style.borderRadius = "9999px";
+  btn.style.cursor = "pointer";
+  btn.style.fontWeight = "600";
+  btn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.25)";
+  btn.style.zIndex = "1000";
+  btn.onmouseenter = () => btn.style.background = "#d32f2f";
+  btn.onmouseleave = () => btn.style.background = "#f44336";
   btn.onclick = () => {
-    localStorage.removeItem("loggedIn");
-    localStorage.removeItem("username");
-    localStorage.removeItem("password");
+    localStorage.clear();
     location.reload();
   };
   document.body.appendChild(btn);
 }
 
-// ✅ Check login
+// ========================
+// LOGIN CHECK
+// ========================
 window.checkLogin = function () {
   const u = $("username").value.trim();
   const p = $("password").value.trim();
@@ -78,7 +86,9 @@ window.checkLogin = function () {
   }
 };
 
-// ✅ Add Item
+// ========================
+// ADD ITEM
+// ========================
 window.addItem = async function () {
   const name = $("itemName").value.trim();
   const prepared = $("datePrepared").value;
@@ -89,43 +99,64 @@ window.addItem = async function () {
     return;
   }
 
-  await addDoc(itemsRef, { name, prepared, expiry });
-  await setDoc(doc(namesRef, name), { name });
+  try {
+    await addDoc(itemsRef, { name, prepared, expiry });
+    // Add to product names only if not exists
+    await setDoc(doc(namesRef, name), { name });
 
-  $("itemName").value = "";
-  $("datePrepared").value = "";
-  $("expiryDate").value = "";
-};
-
-// ✅ Delete Item
-window.deleteItem = async function (id) {
-  if (confirm("Vuoi eliminare questo prodotto?")) {
-    await deleteDoc(doc(itemsRef, id));
+    $("itemName").value = "";
+    $("datePrepared").value = "";
+    $("expiryDate").value = "";
+  } catch (e) {
+    alert("Errore nell'aggiunta del prodotto: " + e.message);
   }
 };
 
-// ✅ Edit Item
+// ========================
+// DELETE ITEM
+// ========================
+window.deleteItem = async function (id) {
+  if (confirm("Vuoi eliminare questo prodotto?")) {
+    try {
+      await deleteDoc(doc(itemsRef, id));
+    } catch (e) {
+      alert("Errore durante l'eliminazione: " + e.message);
+    }
+  }
+};
+
+// ========================
+// EDIT ITEM
+// ========================
 window.editItem = async function (id, current) {
   const newName = prompt("Modifica nome prodotto:", current.name);
   const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
   const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
   if (newName && newPrepared && newExpiry) {
-    await setDoc(doc(itemsRef, id), {
-      name: newName,
-      prepared: newPrepared,
-      expiry: newExpiry
-    });
-    await setDoc(doc(namesRef, newName), { name: newName });
+    try {
+      await setDoc(doc(itemsRef, id), {
+        name: newName,
+        prepared: newPrepared,
+        expiry: newExpiry
+      });
+      await setDoc(doc(namesRef, newName), { name: newName });
+    } catch (e) {
+      alert("Errore durante la modifica: " + e.message);
+    }
   }
 };
 
-// ✅ Format date
+// ========================
+// Format date dd/mm/yyyy
+// ========================
 function formatDate(dateStr) {
   const [y, m, d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
 }
 
-// ✅ Render Items
+// ========================
+// Render Items in table
+// ========================
 function renderItems(snapshot) {
   const table = $("itemTable");
   table.innerHTML = "";
@@ -162,7 +193,9 @@ function renderItems(snapshot) {
   });
 }
 
-// ✅ Render Product Names
+// ========================
+// Render product names for datalist
+// ========================
 function renderProductNames(snapshot) {
   const datalist = $("productList");
   datalist.innerHTML = "";
@@ -174,7 +207,9 @@ function renderProductNames(snapshot) {
   });
 }
 
-// ✅ Start app UI after login
+// ========================
+// START APP (after login)
+// ========================
 function startApp() {
   document.body.innerHTML = `
     <h1 style="text-align:center; color:#4CAF50;">Food Tracker Admin</h1>
@@ -205,7 +240,9 @@ function startApp() {
   onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
 }
 
-// ✅ Init app
+// ========================
+// INITIALIZE
+// ========================
 if (localStorage.getItem("loggedIn") === "yes" 
     && localStorage.getItem("username") === "Admin" 
     && localStorage.getItem("password") === "Miraggio@46") {
