@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Food Tracker</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
+    #loginBox, #mainApp { max-width: 400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgb(0 0 0 / 0.1); }
+    button { padding: 10px; margin-top: 10px; width: 100%; background: #4CAF50; color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    input { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; }
+    #logoutBtn {
+      position: fixed; top: 10px; right: 10px;
+      padding: 8px 14px; background: #f44336; color: white;
+      border: none; border-radius: 9999px; font-weight: 600;
+      cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      display: none;
+      z-index: 1000;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loginBox">
+    <h2>Login Amministratore</h2>
+    <input id="username" placeholder="Username" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="loginBtn">Accedi</button>
+  </div>
+
+  <button id="logoutBtn">Esci</button>
+
+  <div id="mainApp" style="display:none;">
+    <h2>🍲 Tracciatore Alimenti</h2>
+
+    <input id="itemName" placeholder="Nome prodotto" list="productList" />
+    <datalist id="productList"></datalist>
+    <input id="datePrepared" type="date" />
+    <input id="expiryDate" type="date" />
+    <button id="addItemBtn">Aggiungi Prodotto</button>
+
+    <table border="1" cellspacing="0" cellpadding="6" style="width: 100%; margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Preparato</th>
+          <th>Scadenza</th>
+          <th>Stato</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="itemTable"></tbody>
+    </table>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
