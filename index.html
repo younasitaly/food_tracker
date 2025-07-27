@@ -6,6 +6,7 @@
   <title>Tracciatore Alimenti</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="192.png" />
+  <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
   <style>
     body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
@@ -25,29 +26,47 @@
     }
     .expired { background-color: #ffcccc; }
     .expiring-soon { background-color: #fff3cd; }
+    #loginBox { max-width: 300px; margin: 60px auto; text-align: center; }
+    #mainApp { display: none; }
   </style>
+
+  <!-- Firebase scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<h2>🍲 Tracciatore Alimenti</h2>
 
-<input id="itemName" placeholder="Nome Prodotto" type="text" list="productList" />
-<datalist id="productList"></datalist>
-<input id="datePrepared" placeholder="Data di Preparazione" type="date" />
-<input id="expiryDate" placeholder="Data di Scadenza" type="date" />
-<button onclick="addItem()">Aggiungi</button>
+<!-- 🔐 LOGIN -->
+<div id="loginBox">
+  <h3>Login Amministratore</h3>
+  <input id="email" type="email" placeholder="Email" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="login()">Login</button>
+</div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Prodotto</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
-    </tr>
-  </thead>
-  <tbody id="itemTable"></tbody>
-</table>
+<!-- ✅ MAIN APP -->
+<div id="mainApp">
+  <h2>🍲 Tracciatore Alimenti</h2>
+
+  <input id="itemName" placeholder="Nome Prodotto" type="text" list="productList" />
+  <datalist id="productList"></datalist>
+  <input id="datePrepared" placeholder="Data di Preparazione" type="date" />
+  <input id="expiryDate" placeholder="Data di Scadenza" type="date" />
+  <button onclick="addItem()">Aggiungi</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Prodotto</th><th>Preparato</th><th>Scade</th><th>Stato</th><th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody id="itemTable"></tbody>
+  </table>
+</div>
 
 <script>
+  // ✅ Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
     authDomain: "food-tracker-fca47.firebaseapp.com",
@@ -58,14 +77,44 @@
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.firestore();
   const itemsRef = db.collection("foodItems");
   const namesRef = db.collection("productNames");
 
+  // 🔐 Login function
+  function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("mainApp").style.display = "block";
+      })
+      .catch(err => {
+        alert("Credenziali errate");
+        console.error(err);
+      });
+  }
+
+  // 🕵️ Monitor auth state
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+    }
+  });
+
+  // 🔧 Utility
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  // ➕ Add item
   function addItem() {
-    const name = document.getElementById("itemName").value.trim();
-    const prepared = document.getElementById("datePrepared").value;
-    const expiry = document.getElementById("expiryDate").value;
+    const name = $("itemName").value.trim();
+    const prepared = $("datePrepared").value;
+    const expiry = $("expiryDate").value;
 
     if (!name || !prepared || !expiry) {
       alert("Per favore, completa tutti i campi.");
@@ -75,17 +124,19 @@
     itemsRef.add({ name, prepared, expiry });
     namesRef.doc(name).set({ name });
 
-    document.getElementById("itemName").value = '';
-    document.getElementById("datePrepared").value = '';
-    document.getElementById("expiryDate").value = '';
+    $("itemName").value = '';
+    $("datePrepared").value = '';
+    $("expiryDate").value = '';
   }
 
+  // ❌ Delete item
   function deleteItem(id) {
     if (confirm("Vuoi eliminare questo prodotto?")) {
       itemsRef.doc(id).delete();
     }
   }
 
+  // ✏️ Edit item
   function editItem(id, current) {
     const newName = prompt("Modifica nome prodotto:", current.name);
     const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
@@ -96,12 +147,14 @@
     }
   }
 
+  // 📅 Format date
   function formatDate(dateStr) {
     const [y, m, d] = dateStr.split("-"); return `${d}/${m}/${y}`;
   }
 
+  // 📋 Render items
   function renderItems(snapshot) {
-    const table = document.getElementById("itemTable");
+    const table = $("itemTable");
     table.innerHTML = "";
     const today = new Date(); today.setHours(0, 0, 0, 0);
 
@@ -124,15 +177,16 @@
         <td>${formatDate(item.expiry)}</td>
         <td>${status}</td>
         <td>
-          <button onclick="editItem('${id}', ${JSON.stringify(item)})">✏️</button>
-          <button onclick="deleteItem('${id}')">🗑️</button>
+          <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+          <button onclick='deleteItem("${id}")'>🗑️</button>
         </td>`;
       table.appendChild(row);
     });
   }
 
+  // 🧾 Render product list
   function renderProductNames(snapshot) {
-    const datalist = document.getElementById("productList");
+    const datalist = $("productList");
     datalist.innerHTML = "";
     snapshot.forEach(doc => {
       const name = doc.data().name;
@@ -144,10 +198,8 @@
 
   itemsRef.orderBy("expiry").onSnapshot(renderItems);
   namesRef.orderBy("name").onSnapshot(renderProductNames);
-</script>
 
-<!-- 🔧 Service Worker for PWA -->
-<script>
+  // 🔧 PWA Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(() => console.log('✅ Service Worker registered'))
