@@ -153,9 +153,8 @@ function startApp() {
 }
 
 // ✅ Init
-if sessionStorage.setItem("loggedIn", "yes"); 
-{
-  showLogin();
+if (localStorage.getItem("loggedIn") === "yes") {
+  startApp(); // user is logged in, start app
 } else {
-  startApp(); // render starts from index.html
+  showLogin(); // user not logged in, show login screen
 }
