@@ -21,7 +21,6 @@ const db = getFirestore(app);
 const itemsRef = collection(db, "foodItems");
 const namesRef = collection(db, "productNames");
 
-// ✅ Helpers
 function $(id) {
   return document.getElementById(id);
 }
@@ -29,32 +28,30 @@ function $(id) {
 // ✅ Login UI
 function showLogin() {
   document.body.innerHTML = `
-    <h2 style="text-align:center; color:#4CAF50;">🔐 Accesso Amministratore</h2>
-    <div style="max-width: 400px; margin: 20px auto; padding: 0 10px;">
-      <input id="username" placeholder="Username" style="width:100%; padding:10px; margin:10px 0; font-size:16px;" />
-      <input id="password" placeholder="Password" type="password" style="width:100%; padding:10px; margin:10px 0; font-size:16px;" />
-      <button onclick="checkLogin()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; font-weight:bold; font-size:16px; cursor:pointer;">Accedi</button>
+    <div style="max-width: 400px; margin: 80px auto; padding: 20px;">
+      <h2 style="text-align:center; color:#4CAF50;">🔐 Accesso Amministratore</h2>
+      <input id="username" placeholder="Username" style="width:100%; padding:10px; margin:10px 0;" />
+      <input id="password" placeholder="Password" type="password" style="width:100%; padding:10px; margin:10px 0;" />
+      <button onclick="checkLogin()" style="width:100%; padding:10px; background:#4CAF50; color:white; border:none;">Accedi</button>
     </div>
   `;
 }
 
-// ✅ Logout button UI (green and neat)
+// ✅ Logout UI
 function showLogout() {
   const btn = document.createElement("button");
   btn.textContent = "Esci";
   btn.style = `
     position: fixed;
-    top: 12px;
-    right: 12px;
-    padding: 8px 16px;
-    background: #4CAF50;
+    top: 10px;
+    right: 10px;
+    padding: 8px 14px;
+    background: #f44336;
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-weight: bold;
     z-index: 1000;
   `;
   btn.onclick = () => {
@@ -66,7 +63,7 @@ function showLogout() {
   document.body.appendChild(btn);
 }
 
-// ✅ Check login
+// ✅ Login check
 window.checkLogin = function () {
   const u = $("username").value.trim();
   const p = $("password").value.trim();
@@ -81,7 +78,7 @@ window.checkLogin = function () {
   }
 };
 
-// ✅ Add Item
+// ✅ Add item
 window.addItem = async function () {
   const name = $("itemName").value.trim();
   const prepared = $("datePrepared").value;
@@ -100,27 +97,25 @@ window.addItem = async function () {
   $("expiryDate").value = "";
 };
 
-// ✅ Delete Item
-window.deleteItem = async function (id) {
-  if (confirm("Vuoi eliminare questo prodotto?")) {
-    await deleteDoc(doc(itemsRef, id));
-  }
-};
-
-// ✅ Edit Item
-window.editItem = async function (id, current) {
+// ✅ Edit item
+function editItem(id, current) {
   const newName = prompt("Modifica nome prodotto:", current.name);
   const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
   const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
   if (newName && newPrepared && newExpiry) {
-    await setDoc(doc(itemsRef, id), {
-      name: newName,
-      prepared: newPrepared,
-      expiry: newExpiry
-    });
-    await setDoc(doc(namesRef, newName), { name: newName });
+    setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+    setDoc(doc(namesRef, newName), { name: newName });
   }
-};
+}
+window.editItem = editItem;
+
+// ✅ Delete item
+function deleteItem(id) {
+  if (confirm("Vuoi eliminare questo prodotto?")) {
+    deleteDoc(doc(itemsRef, id));
+  }
+}
+window.deleteItem = deleteItem;
 
 // ✅ Format date
 function formatDate(dateStr) {
@@ -128,7 +123,7 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-// ✅ Render Items
+// ✅ Render items
 function renderItems(snapshot) {
   const table = $("itemTable");
   table.innerHTML = "";
@@ -158,14 +153,14 @@ function renderItems(snapshot) {
       <td>${formatDate(item.expiry)}</td>
       <td>${status}</td>
       <td>
-        <button onclick='editItem("${id}", ${JSON.stringify(item)})' style="cursor:pointer;">✏️</button>
-        <button onclick='deleteItem("${id}")' style="cursor:pointer;">🗑️</button>
+        <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+        <button onclick='deleteItem("${id}")'>🗑️</button>
       </td>`;
     table.appendChild(row);
   });
 }
 
-// ✅ Render Product Names
+// ✅ Render product names
 function renderProductNames(snapshot) {
   const datalist = $("productList");
   datalist.innerHTML = "";
@@ -177,8 +172,42 @@ function renderProductNames(snapshot) {
   });
 }
 
-// ✅ Start app UI after login
+// ✅ Start app
 function startApp() {
   document.body.innerHTML = `
-    <h1 style="text-align:center; color:#4CAF50; margin-top: 20px;">🍲 Food Tracker Admin</h1>
-    <div style="max-width: 600px; margin: 20px auto; padding: 0 10px;">
+    <div style="max-width: 600px; margin: 60px auto; padding: 15px;">
+      <h2 style="text-align:center; color:#4CAF50;">🍲 Tracciatore Alimenti</h2>
+      <form onsubmit="event.preventDefault(); addItem();">
+        <input list="productList" id="itemName" placeholder="Nome prodotto" style="width:100%; padding:10px; margin-bottom:10px;" />
+        <datalist id="productList"></datalist>
+        <input id="datePrepared" type="date" style="width:100%; padding:10px; margin-bottom:10px;" />
+        <input id="expiryDate" type="date" style="width:100%; padding:10px; margin-bottom:10px;" />
+        <button type="submit" style="width:100%; padding:10px; background:#4CAF50; color:white; border:none;">Aggiungi Prodotto</button>
+      </form>
+      <table style="width:100%; margin-top:20px; border-collapse:collapse; background:white;">
+        <thead>
+          <tr style="background:#f0f0f0;">
+            <th>Nome</th>
+            <th>Preparato</th>
+            <th>Scadenza</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="itemTable"></tbody>
+      </table>
+    </div>
+  `;
+  showLogout();
+  onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
+  onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
+}
+
+// ✅ Init
+if (localStorage.getItem("loggedIn") === "yes"
+    && localStorage.getItem("username") === "Admin"
+    && localStorage.getItem("password") === "Miraggio@46") {
+  startApp();
+} else {
+  showLogin();
+}
