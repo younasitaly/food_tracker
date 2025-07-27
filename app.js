@@ -38,13 +38,41 @@ function showLogin() {
   `;
 }
 
+// ✅ Logout button UI
+function showLogout() {
+  const btn = document.createElement("button");
+  btn.textContent = "Logout";
+  btn.style = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px 14px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  `;
+  btn.onclick = () => {
+    localStorage.removeItem("loggedIn");
+    localStorage.removeItem("username");
+    localStorage.removeItem("password");
+    location.reload();
+  };
+  document.body.appendChild(btn);
+}
+
 // ✅ Check login
 window.checkLogin = function () {
   const u = $("username").value.trim();
   const p = $("password").value.trim();
+
   if (u === "Admin" && p === "Miraggio@46") {
     localStorage.setItem("loggedIn", "yes");
-    location.reload();
+    localStorage.setItem("username", u);
+    localStorage.setItem("password", p);
+    startApp();
   } else {
     alert("Credenziali non valide");
   }
@@ -146,15 +174,42 @@ function renderProductNames(snapshot) {
   });
 }
 
-// ✅ Start app if logged in
+// ✅ Start app UI after login
 function startApp() {
+  document.body.innerHTML = `
+    <h1 style="text-align:center; color:#4CAF50;">Food Tracker Admin</h1>
+    <div style="max-width: 600px; margin: 0 auto;">
+      <form onsubmit="event.preventDefault(); addItem();">
+        <input list="productList" id="itemName" placeholder="Nome prodotto" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+        <datalist id="productList"></datalist>
+        <input id="datePrepared" type="date" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+        <input id="expiryDate" type="date" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+        <button type="submit" style="width: 100%; padding: 10px; background:#4CAF50; color:white; border:none;">Aggiungi Prodotto</button>
+      </form>
+      <table border="1" cellspacing="0" cellpadding="6" style="width: 100%; margin-top: 20px;">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Preparato</th>
+            <th>Scadenza</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="itemTable"></tbody>
+      </table>
+    </div>
+  `;
+  showLogout();
   onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
   onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
 }
 
-// ✅ Init
-if (localStorage.getItem("loggedIn") === "yes") {
-  startApp(); // user is logged in, start app
+// ✅ Init app
+if (localStorage.getItem("loggedIn") === "yes" 
+    && localStorage.getItem("username") === "Admin" 
+    && localStorage.getItem("password") === "Miraggio@46") {
+  startApp();
 } else {
-  showLogin(); // user not logged in, show login screen
+  showLogin();
 }
