@@ -8,6 +8,8 @@
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
+  
+  <!-- ✅ Styles -->
   <style>
     body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
     h2 { text-align: center; color: #4CAF50; }
@@ -28,9 +30,35 @@
     .expiring-soon { background-color: #fff3cd; }
     #loginBox { max-width: 300px; margin: 60px auto; text-align: center; }
     #mainApp { display: none; }
+
+    /* ✅ Modern Logout Button */
+    #logoutBtn {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      display: none; /* hidden by default */
+      z-index: 999;
+    }
+    #logoutBtn:hover {
+      background-color: #dc2626;
+      transform: scale(1.05);
+    }
+    #logoutBtn:active {
+      transform: scale(0.95);
+    }
   </style>
 
-  <!-- Firebase SDKs -->
+  <!-- ✅ Firebase & App Script -->
   <script type="module" src="app.js"></script>
 </head>
 <body>
@@ -42,6 +70,9 @@
   <input id="password" type="password" placeholder="Password" />
   <button onclick="login()">Login</button>
 </div>
+
+<!-- ✅ LOGOUT BUTTON -->
+<button id="logoutBtn">Logout</button>
 
 <!-- ✅ MAIN APP -->
 <div id="mainApp">
@@ -62,6 +93,36 @@
     <tbody id="itemTable"></tbody>
   </table>
 </div>
+
+<!-- ✅ Logout Script -->
+<script type="module">
+  import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  const auth = getAuth();
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  const loginBox = document.getElementById("loginBox");
+  const mainApp = document.getElementById("mainApp");
+
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth).then(() => {
+      location.reload();
+    }).catch((error) => {
+      console.error("Logout Error:", error);
+    });
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      logoutBtn.style.display = "inline-block";
+      loginBox.style.display = "none";
+      mainApp.style.display = "block";
+    } else {
+      logoutBtn.style.display = "none";
+      loginBox.style.display = "block";
+      mainApp.style.display = "none";
+    }
+  });
+</script>
 
 </body>
 </html>
