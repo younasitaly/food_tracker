@@ -1,168 +1,307 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tracciatore Alimenti</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="192.png" />
-  <link rel="apple-touch-icon" href="192.png" />
-  <meta name="theme-color" content="#4CAF50" />
-
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 10px;
-      background: #f4f4f4;
-    }
-
-    h2 {
-      text-align: center;
-      color: #4CAF50;
-      margin-bottom: 20px;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-    }
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tracciatore Alimenti</title>
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0; padding: 10px;
+    background: #f4f4f4;
+  }
+  h2 {
+    text-align: center;
+    color: #4CAF50;
+  }
+  input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: white;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+    max-width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  th {
+    background: #f0f0f0;
+  }
+  .expired {
+    background-color: #ffdddd;
+  }
+  .expiring-soon {
+    background-color: #fff4cc;
+  }
+  #loginBox, #mainApp {
+    max-width: 400px;
+    margin: 60px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .logout-btn {
+    position: fixed;
+    top: 10px; right: 10px;
+    background: #f44336;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 999;
+  }
+  @media (max-width: 600px) {
     th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      font-size: 12px;
+      padding: 4px;
+      max-width: 80px;
+    }
+    input, button {
       font-size: 14px;
-      text-align: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 120px;
     }
-
-    th {
-      background: #f0f0f0;
+    #loginBox, #mainApp {
+      margin: 20px 10px;
+      padding: 15px;
     }
-
-    .expired {
-      background-color: #ffdddd;
-    }
-
-    .expiring-soon {
-      background-color: #fff4cc;
-    }
-
-    #loginBox {
-      max-width: 350px;
-      margin: 80px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    .logout-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #f44336;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 999;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 60px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
-    }
-
-    @media (max-width: 600px) {
-      th, td {
-        font-size: 12px;
-        padding: 4px;
-        max-width: 80px;
-      }
-
-      .logout-btn {
-        padding: 6px 10px;
-        font-size: 13px;
-      }
-
-      input, button {
-        font-size: 14px;
-      }
-
-      .container {
-        margin: 20px 10px;
-        padding: 15px;
-      }
-    }
-  </style>
-
-  <!-- Load app.js -->
-  <script type="module" src="app.js"></script>
+  }
+</style>
 </head>
 <body>
 
-<!-- 🔐 Login Box -->
+<!-- Login -->
 <div id="loginBox">
   <h2>🔐 Accesso Amministratore</h2>
-  <input id="username" placeholder="Username" />
-  <input id="password" type="password" placeholder="Password" />
-  <button onclick="checkLogin()">Accedi</button>
+  <input id="username" placeholder="Username" autocomplete="username" />
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+  <button id="loginBtn">Accedi</button>
 </div>
 
-<!-- ✅ Main App -->
+<!-- Main App -->
 <div id="mainApp" style="display:none;">
-  <div class="container">
-    <h2>🍲 Tracciatore Alimenti</h2>
-    <form onsubmit="event.preventDefault(); addItem();">
-      <input list="productList" id="itemName" placeholder="Nome prodotto" />
-      <datalist id="productList"></datalist>
-      <input id="datePrepared" type="date" />
-      <input id="expiryDate" type="date" />
-      <button type="submit">Aggiungi Prodotto</button>
-    </form>
+  <button id="logoutBtn" class="logout-btn">Esci</button>
+  <h2>🍲 Tracciatore Alimenti</h2>
+  <form id="addForm">
+    <input list="productList" id="itemName" placeholder="Nome prodotto" autocomplete="off" />
+    <datalist id="productList"></datalist>
+    <input id="datePrepared" type="date" />
+    <input id="expiryDate" type="date" />
+    <button type="submit">Aggiungi Prodotto</button>
+  </form>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Preparato</th>
-          <th>Scadenza</th>
-          <th>Stato</th>
-          <th>Azioni</th>
-        </tr>
-      </thead>
-      <tbody id="itemTable"></tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Preparato</th>
+        <th>Scadenza</th>
+        <th>Stato</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody id="itemTable"></tbody>
+  </table>
 </div>
 
+<script type="module">
+// Firebase imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc,
+  setDoc, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
+  authDomain: "food-tracker-fca47.firebaseapp.com",
+  projectId: "food-tracker-fca47",
+  storageBucket: "food-tracker-fca47.appspot.com",
+  messagingSenderId: "769456892190",
+  appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const itemsRef = collection(db, "foodItems");
+const namesRef = collection(db, "productNames");
+
+const loginBox = document.getElementById('loginBox');
+const mainApp = document.getElementById('mainApp');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const addForm = document.getElementById('addForm');
+
+function $(id) { return document.getElementById(id); }
+
+function formatDate(dateStr) {
+  const [y,m,d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function renderItems(snapshot) {
+  const table = $("itemTable");
+  table.innerHTML = "";
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  snapshot.forEach(docSnap => {
+    const item = docSnap.data();
+    const id = docSnap.id;
+    const expiryDate = new Date(item.expiry);
+    const daysLeft = Math.floor((expiryDate - today) / (1000*60*60*24));
+
+    let status = "", rowClass = "";
+    if (expiryDate < today) {
+      status = "Scaduto";
+      rowClass = "expired";
+    } else if (daysLeft <= 1) {
+      status = "In Scadenza";
+      rowClass = "expiring-soon";
+    } else {
+      status = `${daysLeft} giorni rimasti`;
+    }
+
+    const tr = document.createElement("tr");
+    tr.className = rowClass;
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td>${formatDate(item.prepared)}</td>
+      <td>${formatDate(item.expiry)}</td>
+      <td>${status}</td>
+      <td>
+        <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+        <button onclick='deleteItem("${id}")'>🗑️</button>
+      </td>`;
+    table.appendChild(tr);
+  });
+}
+
+function renderProductNames(snapshot) {
+  const datalist = $("productList");
+  datalist.innerHTML = "";
+  snapshot.forEach(docSnap => {
+    const name = docSnap.data().name;
+    const opt = document.createElement("option");
+    opt.value = name;
+    datalist.appendChild(opt);
+  });
+}
+
+async function addItem() {
+  const name = $("itemName").value.trim();
+  const prepared = $("datePrepared").value;
+  const expiry = $("expiryDate").value;
+
+  if (!name || !prepared || !expiry) {
+    alert("Per favore, completa tutti i campi.");
+    return;
+  }
+  await addDoc(itemsRef, { name, prepared, expiry });
+  await setDoc(doc(namesRef, name), { name });
+
+  $("itemName").value = "";
+  $("datePrepared").value = "";
+  $("expiryDate").value = "";
+}
+
+async function editItem(id, current) {
+  const newName = prompt("Modifica nome prodotto:", current.name);
+  const newPrepared = prompt("Modifica data di preparazione (YYYY-MM-DD):", current.prepared);
+  const newExpiry = prompt("Modifica data di scadenza (YYYY-MM-DD):", current.expiry);
+
+  if (newName && newPrepared && newExpiry) {
+    await setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+    await setDoc(doc(namesRef, newName), { name: newName });
+  }
+}
+
+async function deleteItem(id) {
+  if (confirm("Vuoi eliminare questo prodotto?")) {
+    await deleteDoc(doc(itemsRef, id));
+  }
+}
+
+window.editItem = editItem; // expose for inline onclick
+window.deleteItem = deleteItem;
+
+function showMainApp() {
+  loginBox.style.display = "none";
+  mainApp.style.display = "block";
+
+  // Listen to Firestore updates
+  onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
+  onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
+}
+
+function showLogin() {
+  loginBox.style.display = "block";
+  mainApp.style.display = "none";
+}
+
+// Login check function
+function checkLogin() {
+  const u = $("username").value.trim();
+  const p = $("password").value.trim();
+
+  if (u === "Admin" && p === "Miraggio@46") {
+    localStorage.setItem("loggedIn", "yes");
+    localStorage.setItem("username", u);
+    localStorage.setItem("password", p);
+    showMainApp();
+  } else {
+    alert("Credenziali non valide");
+  }
+}
+
+loginBtn.addEventListener("click", checkLogin);
+
+// Logout button
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("loggedIn");
+  localStorage.removeItem("username");
+  localStorage.removeItem("password");
+  showLogin();
+});
+
+// Add item form submit
+addForm.addEventListener("submit", e => {
+  e.preventDefault();
+  addItem();
+});
+
+// On page load check login
+if (
+  localStorage.getItem("loggedIn") === "yes" &&
+  localStorage.getItem("username") === "Admin" &&
+  localStorage.getItem("password") === "Miraggio@46"
+) {
+  showMainApp();
+} else {
+  showLogin();
+}
+</script>
 </body>
 </html>
