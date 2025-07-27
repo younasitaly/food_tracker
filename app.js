@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, deleteDoc, doc,
-  setDoc, onSnapshot, query, orderBy
+  setDoc, onSnapshot, query, orderBy, getDoc, updateDoc
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 // ✅ Config
@@ -97,25 +97,41 @@ window.addItem = async function () {
   $("expiryDate").value = "";
 };
 
-// ✅ Edit item
-function editItem(id, current) {
-  const newName = prompt("Modifica nome prodotto:", current.name);
-  const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
-  const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
-  if (newName && newPrepared && newExpiry) {
-    setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
-    setDoc(doc(namesRef, newName), { name: newName });
+// ✅ Get document data by ID (fix for edit)
+async function getDocData(id) {
+  try {
+    const docRef = doc(db, 'foodItems', id);
+    const snap = await getDoc(docRef);
+    return snap.exists() ? snap.data() : null;
+  } catch (e) {
+    return null;
   }
 }
-window.editItem = editItem;
+
+// ✅ Edit item
+window.editItem = async function (id) {
+  const current = await getDocData(id);
+  if (!current) {
+    alert("Prodotto non trovato");
+    return;
+  }
+
+  const newName = prompt("Modifica nome prodotto:", current.name);
+  const newPrepared = prompt("Modifica data di preparazione (YYYY-MM-DD):", current.prepared);
+  const newExpiry = prompt("Modifica data di scadenza (YYYY-MM-DD):", current.expiry);
+
+  if (newName && newPrepared && newExpiry) {
+    await updateDoc(doc(db, "foodItems", id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+    await setDoc(doc(namesRef, newName), { name: newName });
+  }
+};
 
 // ✅ Delete item
-function deleteItem(id) {
+window.deleteItem = function (id) {
   if (confirm("Vuoi eliminare questo prodotto?")) {
-    deleteDoc(doc(itemsRef, id));
+    deleteDoc(doc(db, "foodItems", id));
   }
-}
-window.deleteItem = deleteItem;
+};
 
 // ✅ Format date
 function formatDate(dateStr) {
@@ -153,7 +169,7 @@ function renderItems(snapshot) {
       <td>${formatDate(item.expiry)}</td>
       <td>${status}</td>
       <td>
-        <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+        <button onclick='editItem("${id}")'>✏️</button>
         <button onclick='deleteItem("${id}")'>🗑️</button>
       </td>`;
     table.appendChild(row);
