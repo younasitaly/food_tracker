@@ -7,107 +7,125 @@
   <title>Tracciatore Alimenti</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="192.png" />
-  <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
+
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 10px;
-      background: #f4f4f4;
+      padding: 0;
+      background: #f9f9f9;
     }
+
+    .container {
+      max-width: 800px;
+      margin: 80px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
     h2 {
-      text-align: center;
       color: #4CAF50;
+      text-align: center;
       margin-bottom: 20px;
     }
+
     input, button {
       width: 100%;
       padding: 10px;
-      margin: 6px 0;
+      margin: 8px 0;
       font-size: 16px;
       box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
+
     button {
       background-color: #4CAF50;
       color: white;
-      border: none;
       font-weight: bold;
+      border: none;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 20px;
       background: white;
     }
+
     th, td {
       border: 1px solid #ddd;
-      padding: 8px;
-      font-size: 14px;
+      padding: 10px;
       text-align: center;
+      font-size: 14px;
+      max-width: 140px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 120px;
     }
+
     th {
       background: #f0f0f0;
     }
+
     .expired {
       background-color: #ffdddd;
     }
+
     .expiring-soon {
       background-color: #fff4cc;
     }
-    #loginBox {
-      max-width: 350px;
-      margin: 80px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+
     .logout-btn {
       position: fixed;
       top: 10px;
       right: 10px;
       background: #f44336;
       color: white;
-      padding: 8px 14px;
+      padding: 10px 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
       z-index: 999;
     }
-    .container {
-      max-width: 600px;
-      margin: 60px auto;
-      background: white;
+
+    #loginBox {
+      max-width: 400px;
+      margin: 100px auto;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
+
     @media (max-width: 600px) {
+      .container {
+        margin: 20px 10px;
+      }
+
       th, td {
         font-size: 12px;
-        padding: 4px;
-        max-width: 80px;
+        padding: 6px;
       }
+
       .logout-btn {
         padding: 6px 10px;
         font-size: 13px;
       }
-      input, button {
-        font-size: 14px;
-      }
-      .container {
-        margin: 20px 10px;
-        padding: 15px;
-      }
     }
   </style>
+
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import {
@@ -131,13 +149,36 @@
 
     function $(id) { return document.getElementById(id); }
 
+    function formatDate(dateStr) {
+      const [y, m, d] = dateStr.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function showLogout() {
+      const btn = document.createElement("button");
+      btn.textContent = "Esci";
+      btn.className = "logout-btn";
+      btn.onclick = () => {
+        localStorage.clear();
+        location.reload();
+      };
+      document.body.appendChild(btn);
+    }
+
+    function showMainApp() {
+      $("loginBox").style.display = "none";
+      $("mainApp").style.display = "block";
+      showLogout();
+
+      onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
+      onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
+    }
+
     window.checkLogin = function () {
       const u = $("username").value.trim();
       const p = $("password").value.trim();
       if (u === "Admin" && p === "Miraggio@46") {
         localStorage.setItem("loggedIn", "yes");
-        localStorage.setItem("username", u);
-        localStorage.setItem("password", p);
         showMainApp();
       } else {
         alert("Credenziali non valide");
@@ -148,52 +189,37 @@
       const name = $("itemName").value.trim();
       const prepared = $("datePrepared").value;
       const expiry = $("expiryDate").value;
-      if (!name || !prepared || !expiry) {
-        alert("Per favore, completa tutti i campi.");
-        return;
-      }
+      if (!name || !prepared || !expiry) return alert("Completa tutti i campi.");
       await addDoc(itemsRef, { name, prepared, expiry });
       await setDoc(doc(namesRef, name), { name });
-      $("itemName").value = "";
-      $("datePrepared").value = "";
-      $("expiryDate").value = "";
+      $("itemName").value = $("datePrepared").value = $("expiryDate").value = "";
     };
 
-    function editItem(id, current) {
-      const newName = prompt("Modifica nome prodotto:", current.name);
-      const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
-      const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
+    window.editItem = function (id, item) {
+      const newName = prompt("Modifica nome prodotto:", item.name);
+      const newPrepared = prompt("Modifica data preparazione:", item.prepared);
+      const newExpiry = prompt("Modifica data scadenza:", item.expiry);
       if (newName && newPrepared && newExpiry) {
         setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
         setDoc(doc(namesRef, newName), { name: newName });
       }
-    }
-    window.editItem = editItem;
+    };
 
-    function deleteItem(id) {
+    window.deleteItem = function (id) {
       if (confirm("Vuoi eliminare questo prodotto?")) {
         deleteDoc(doc(itemsRef, id));
       }
-    }
-    window.deleteItem = deleteItem;
-
-    function formatDate(dateStr) {
-      const [y, m, d] = dateStr.split("-");
-      return `${d}/${m}/${y}`;
-    }
+    };
 
     function renderItems(snapshot) {
       const table = $("itemTable");
       table.innerHTML = "";
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0,0,0,0);
 
       snapshot.forEach(docSnap => {
-        const item = docSnap.data();
-        const id = docSnap.id;
+        const item = docSnap.data(), id = docSnap.id;
         const expiryDate = new Date(item.expiry);
         const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
-
         let status = "", rowClass = "";
         if (expiryDate < today) {
           status = "Scaduto"; rowClass = "expired";
@@ -219,46 +245,22 @@
     }
 
     function renderProductNames(snapshot) {
-      const datalist = $("productList");
-      datalist.innerHTML = "";
+      const list = $("productList");
+      list.innerHTML = "";
       snapshot.forEach(docSnap => {
         const name = docSnap.data().name;
         const opt = document.createElement("option");
         opt.value = name;
-        datalist.appendChild(opt);
+        list.appendChild(opt);
       });
     }
 
-    function showMainApp() {
-      $("loginBox").style.display = "none";
-      $("mainApp").style.display = "block";
-      showLogout();
-      onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
-      onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
-    }
-
-    function showLogout() {
-      const btn = document.createElement("button");
-      btn.textContent = "Esci";
-      btn.className = "logout-btn";
-      btn.onclick = () => {
-        localStorage.removeItem("loggedIn");
-        localStorage.removeItem("username");
-        localStorage.removeItem("password");
-        location.reload();
-      };
-      document.body.appendChild(btn);
-    }
-
-    if (localStorage.getItem("loggedIn") === "yes"
-        && localStorage.getItem("username") === "Admin"
-        && localStorage.getItem("password") === "Miraggio@46") {
-      showMainApp();
-    }
+    if (localStorage.getItem("loggedIn") === "yes") showMainApp();
   </script>
 </head>
 <body>
 
+<!-- 🔐 Login -->
 <div id="loginBox">
   <h2>🔐 Accesso Amministratore</h2>
   <input id="username" placeholder="Username" />
@@ -266,6 +268,7 @@
   <button onclick="checkLogin()">Accedi</button>
 </div>
 
+<!-- ✅ App -->
 <div id="mainApp" style="display:none;">
   <div class="container">
     <h2>🍲 Tracciatore Alimenti</h2>
