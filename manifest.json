@@ -1,20 +1,156 @@
-{
-  "name": "Tracciatore Alimenti",
-  "short_name": "Alimenti",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#f4f4f4",
-  "theme_color": "#4CAF50",
-  "icons": [
-    {
-      "src": "192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc,
+  setDoc, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+// 🔧 Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
+  authDomain: "food-tracker-fca47.firebaseapp.com",
+  projectId: "food-tracker-fca47",
+  storageBucket: "food-tracker-fca47.appspot.com",
+  messagingSenderId: "769456892190",
+  appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const itemsRef = collection(db, "foodItems");
+const namesRef = collection(db, "productNames");
+
+// 💬 Login function
+window.login = function () {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  signInWithEmailAndPassword(auth, email, password)
+    .then(() => {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("mainApp").style.display = "block";
+    })
+    .catch(err => {
+      alert("Credenziali errate");
+      console.error(err);
+    });
+};
+
+// 🕵️ Show/hide UI based on auth
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+  }
+});
+
+// 📦 Utility shortcut
+function $(id) { return document.getElementById(id); }
+
+// ➕ Add item
+window.addItem = async function () {
+  const name = $("itemName").value.trim();
+  const prepared = $("datePrepared").value;
+  const expiry = $("expiryDate").value;
+
+  if (!name || !prepared || !expiry) {
+    alert("Per favore, completa tutti i campi.");
+    return;
+  }
+
+  await addDoc(itemsRef, { name, prepared, expiry });
+  await setDoc(doc(namesRef, name), { name });
+
+  $("itemName").value = "";
+  $("datePrepared").value = "";
+  $("expiryDate").value = "";
+};
+
+// ❌ Delete item
+window.deleteItem = async function (id) {
+  if (confirm("Vuoi eliminare questo prodotto?")) {
+    await deleteDoc(doc(itemsRef, id));
+  }
+};
+
+// ✏️ Edit item
+window.editItem = async function (id, current) {
+  const newName = prompt("Modifica nome prodotto:", current.name);
+  const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
+  const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
+  if (newName && newPrepared && newExpiry) {
+    await setDoc(doc(itemsRef, id), {
+      name: newName,
+      prepared: newPrepared,
+      expiry: newExpiry
+    });
+    await setDoc(doc(namesRef, newName), { name: newName });
+  }
+};
+
+// 📅 Format date
+function formatDate(dateStr) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// 📋 Render table
+function renderItems(snapshot) {
+  const table = $("itemTable");
+  table.innerHTML = "";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  snapshot.forEach(docSnap => {
+    const item = docSnap.data();
+    const id = docSnap.id;
+    const expiryDate = new Date(item.expiry);
+    const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+    let status = "", rowClass = "";
+    if (expiryDate < today) {
+      status = "Scaduto"; rowClass = "expired";
+    } else if (daysLeft <= 1) {
+      status = "In Scadenza"; rowClass = "expiring-soon";
+    } else {
+      status = `${daysLeft} giorni rimasti`;
     }
-  ]
+
+    const row = document.createElement("tr");
+    row.className = rowClass;
+    row.innerHTML = `
+      <td>${item.name}</td>
+      <td>${formatDate(item.prepared)}</td>
+      <td>${formatDate(item.expiry)}</td>
+      <td>${status}</td>
+      <td>
+        <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+        <button onclick='deleteItem("${id}")'>🗑️</button>
+      </td>`;
+    table.appendChild(row);
+  });
+}
+
+// 🧾 Populate product name suggestions
+function renderProductNames(snapshot) {
+  const datalist = $("productList");
+  datalist.innerHTML = "";
+  snapshot.forEach(docSnap => {
+    const name = docSnap.data().name;
+    const opt = document.createElement("option");
+    opt.value = name;
+    datalist.appendChild(opt);
+  });
+}
+
+// 🔁 Real-time listeners
+onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
+onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
+
+// 📦 Register PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(() => console.log("✅ Service Worker registered"))
+    .catch(err => console.error("❌ Service Worker error", err));
 }
