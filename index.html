@@ -1,320 +1,149 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF‑8"/>
+  <meta name="viewport" content="width=device‑width, initial‑scale=1"/>
   <title>Tracciatore Alimenti</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="192.png" />
-  <link rel="apple-touch-icon" href="192.png" />
-  <meta name="theme-color" content="#4CAF50" />
-
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 10px;
-      background: #f4f4f4;
-      position: relative;
-      min-height: 100vh;
-    }
-
-    h2 {
-      text-align: center;
-      color: #4CAF50;
-      margin-bottom: 20px;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 6px 0;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.2s ease;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      font-size: 14px;
-      text-align: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 120px;
-    }
-
-    th {
-      background: #f0f0f0;
-    }
-
-    .expired {
-      background-color: #ffdddd;
-    }
-
-    .expiring-soon {
-      background-color: #fff4cc;
-    }
-
-    #loginBox {
-      max-width: 350px;
-      margin: 80px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    .logout-btn {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #f44336;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      transition: background-color 0.2s ease;
-    }
-
-    .logout-btn:hover {
-      background-color: #d32f2f;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 60px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
-    }
-
-    /* Action buttons styling */
-    td > button {
-      font-size: 16px;
-      padding: 4px 8px;
-      margin: 0 4px;
-      min-width: 36px;
-      border-radius: 4px;
-      cursor: pointer;
-      border: none;
-      background-color: #4caf50;
-      color: white;
-      transition: background-color 0.2s ease;
-    }
-
-    td > button:hover {
-      background-color: #45a049;
-    }
-
-    td > button.delete-btn {
-      background-color: #f44336;
-    }
-
-    td > button.delete-btn:hover {
-      background-color: #d32f2f;
-    }
-
-    td.actions-cell {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      white-space: nowrap;
-      min-width: 110px;
-    }
-
-    @media (max-width: 600px) {
-      th, td {
-        font-size: 12px;
-        padding: 4px;
-        max-width: 80px;
-      }
-
-      .logout-btn {
-        padding: 6px 10px;
-        font-size: 13px;
-      }
-
-      input, button {
-        font-size: 14px;
-      }
-
-      .container {
-        margin: 20px 10px;
-        padding: 15px;
-      }
-    }
+    body { font-family: 'Segoe UI', sans-serif; background:#f4f4f4; margin:0; padding:10px; }
+    input,button { width:100%; padding:10px; margin:6px 0; font-size:16px; box-sizing:border-box; }
+    button { border:none; cursor:pointer; border-radius:5px; transition:0.2s; }
+    button:hover { opacity:0.9; }
+    .logout-btn { position:fixed; top:10px; right:10px; padding:8px 14px; background:#f44336; color:#fff; border:none; border-radius:6px; font-weight:bold; z-index:999; }
+    table { width:100%; border-collapse:collapse; background:#fff; margin-top:15px; }
+    th,td { border:1px solid #ddd; padding:8px; font-size:14px; text-align:center; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    th { background:#f0f0f0; }
+    .actions-cell { display:flex; justify-content:center; gap:6px; }
+    td > button { font-size:16px; min-width:36px; padding:4px 8px; }
+    td > button.delete-btn { background:#f44336; color:#fff; }
+    td > button.delete-btn:hover { background:#d32f2f; }
+    td > button.edit-btn { background:#4caf50; color:#fff; }
+    td > button.edit-btn:hover { background:#45a049; }
+    @media (max-width:600px){ th,td{ font-size:12px; padding:4px; max-width:80px; } .logout-btn{ padding:6px 10px; font-size:13px; } input,button{ font-size:14px; } }
   </style>
+</head>
+<body>
+
+  <!-- Login Form -->
+  <div id="loginBox" style="max-width:350px; margin:80px auto; background:#fff; padding:20px; border-radius:8px;">
+    <h2 style="text-align:center; color:#4CAF50;">🔐 Accesso Amministratore</h2>
+    <input id="username" placeholder="Username"/>
+    <input id="password" type="password" placeholder="Password"/>
+    <button onclick="checkLogin()" style="background:#4CAF50; color:#fff;">Accedi</button>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" style="display:none; max-width:600px; margin:60px auto; background:#fff; padding:20px; border-radius:10px;">
+    <button id="logoutBtn" class="logout-btn">Esci</button>
+    <h2 style="text-align:center; color:#4CAF50;">🍲 Tracciatore Alimenti</h2>
+    <input list="productList" id="itemName" placeholder="Nome prodotto" style="padding:10px; margin:6px 0;">
+    <datalist id="productList"></datalist>
+    <input type="date" id="datePrepared"/>
+    <input type="date" id="expiryDate"/>
+    <button onclick="addItem()" style="background:#4CAF50; color:#fff;">Aggiungi Prodotto</button>
+
+    <table>
+      <thead>
+        <tr><th>Prodotto</th><th>Preparato</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr>
+      </thead>
+      <tbody id="itemTable"></tbody>
+    </table>
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, deleteDoc, doc,
-      setDoc, onSnapshot, query, orderBy
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
-      authDomain: "food-tracker-fca47.firebaseapp.com",
-      projectId: "food-tracker-fca47",
-      storageBucket: "food-tracker-fca47.appspot.com",
-      messagingSenderId: "769456892190",
-      appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
-    };
-
+    const firebaseConfig = { apiKey:"…", authDomain:"…", projectId:"…", storageBucket:"…", messagingSenderId:"…", appId:"…" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const itemsRef = collection(db, "foodItems");
     const namesRef = collection(db, "productNames");
 
-    function $(id) {
-      return document.getElementById(id);
-    }
+    function $(id){ return document.getElementById(id); }
 
-    window.checkLogin = function () {
-      const u = $("username").value.trim();
-      const p = $("password").value.trim();
-
-      if (u === "Admin" && p === "Miraggio@46") {
-        localStorage.setItem("loggedIn", "yes");
-        localStorage.setItem("username", u);
-        localStorage.setItem("password", p);
+    window.checkLogin = function(){
+      if ( $("username").value.trim()==="Admin" && $("password").value.trim()==="Miraggio@46" ){
+        localStorage.setItem("loggedIn","yes");
         showMainApp();
-      } else {
-        alert("Credenziali non valide");
+      } else alert("Credenziali non valide");
+    };
+
+    window.addItem = async function(){
+      const name=$("itemName").value.trim(), prepared=$("datePrepared").value, expiry=$("expiryDate").value;
+      if(!name||!prepared||!expiry) return alert("Completa tutti i campi.");
+      await addDoc(itemsRef,{name,prepared,expiry});
+      await setDoc(doc(namesRef,name), {name});
+      $("itemName").value=""; $("datePrepared").value=""; $("expiryDate").value="";
+    };
+
+    window.editItem = function(id,obj){
+      const nn=prompt("Nome prodotto:",obj.name), np=prompt("Data preparazione:",obj.prepared), ne=prompt("Data scadenza:",obj.expiry);
+      if(nn&&np&&ne){
+        setDoc(doc(itemsRef, id), {name: nn, prepared: np, expiry: ne});
+        setDoc(doc(namesRef, nn), {name: nn});
       }
     };
 
-    window.addItem = async function () {
-      const name = $("itemName").value.trim();
-      const prepared = $("datePrepared").value;
-      const expiry = $("expiryDate").value;
-
-      if (!name || !prepared || !expiry) {
-        alert("Per favore, completa tutti i campi.");
-        return;
-      }
-
-      await addDoc(itemsRef, { name, prepared, expiry });
-      await setDoc(doc(namesRef, name), { name });
-
-      $("itemName").value = "";
-      $("datePrepared").value = "";
-      $("expiryDate").value = "";
+    window.deleteItem = function(id){
+      if(confirm("Vuoi eliminare questo prodotto?")) deleteDoc(doc(itemsRef,id));
     };
 
-    window.editItem = function (id, current) {
-      const newName = prompt("Modifica nome prodotto:", current.name);
-      const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
-      const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
-      if (newName && newPrepared && newExpiry) {
-        setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
-        setDoc(doc(namesRef, newName), { name: newName });
-      }
-    };
+    function formatDate(s){const [y,m,d]=s.split("-"); return `${d}/${m}/${y}`;}
 
-    window.deleteItem = function (id) {
-      if (confirm("Vuoi eliminare questo prodotto?")) {
-        deleteDoc(doc(itemsRef, id));
-      }
-    };
-
-    function formatDate(dateStr) {
-      const [y, m, d] = dateStr.split("-");
-      return `${d}/${m}/${y}`;
-    }
-
-    function renderItems(snapshot) {
-      const table = $("itemTable");
-      table.innerHTML = "";
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      snapshot.forEach(docSnap => {
-        const item = docSnap.data();
-        const id = docSnap.id;
-        const expiryDate = new Date(item.expiry);
-        const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
-
-        let status = "", rowClass = "";
-        if (expiryDate < today) {
-          status = "Scaduto"; rowClass = "expired";
-        } else if (daysLeft <= 1) {
-          status = "In Scadenza"; rowClass = "expiring-soon";
-        } else {
-          status = `${daysLeft} giorni rimasti`;
-        }
-
-        const row = document.createElement("tr");
-        row.className = rowClass;
-        row.innerHTML = `
+    function renderItems(snapshot){
+      const tb=$("itemTable"); tb.innerHTML="";
+      const today=new Date(); today.setHours(0,0,0,0);
+      snapshot.forEach(ds=>{
+        const item=ds.data(), id=ds.id, exp=new Date(item.expiry);
+        const daysLeft=Math.floor((exp-today)/(1000*60*60*24));
+        let status="", cls="";
+        if(exp<today){status="Scaduto"; cls="expired";}
+        else if(daysLeft<=1){status="In Scadenza"; cls="expiring-soon";}
+        else status=`${daysLeft} giorni rimasti`;
+        const tr=document.createElement("tr");
+        tr.className=cls;
+        tr.innerHTML=`
           <td>${item.name}</td>
           <td>${formatDate(item.prepared)}</td>
           <td>${formatDate(item.expiry)}</td>
           <td>${status}</td>
           <td class="actions-cell">
-            <button onclick='editItem("${id}", ${JSON.stringify(item)})' aria-label="Modifica" title="Modifica">✏️</button>
-            <button onclick='deleteItem("${id}")' aria-label="Elimina" title="Elimina" class="delete-btn">🗑️</button>
+            <button onclick='editItem("${id}", ${JSON.stringify(item)})' class="edit-btn">✏️</button>
+            <button onclick='deleteItem("${id}")' class="delete-btn">🗑️</button>
           </td>`;
-        table.appendChild(row);
+        tb.appendChild(tr);
       });
     }
 
-    function renderProductNames(snapshot) {
-      const datalist = $("productList");
-      datalist.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const name = docSnap.data().name;
-        const opt = document.createElement("option");
-        opt.value = name;
-        datalist.appendChild(opt);
+    function renderNames(snapshot){
+      const d=$("productList"); d.innerHTML="";
+      snapshot.forEach(ds=>{
+        const opt=document.createElement("option"); opt.value=ds.data().name; d.appendChild(opt);
       });
     }
 
-    function showMainApp() {
-      $("loginBox").style.display = "none";
-      $("mainApp").style.display = "block";
-      showLogout();
-
+    function showMainApp(){
+      $("loginBox").style.display="none";
+      $("mainApp").style.display="block";
       onSnapshot(query(itemsRef, orderBy("expiry")), renderItems);
-      onSnapshot(query(namesRef, orderBy("name")), renderProductNames);
+      onSnapshot(query(namesRef, orderBy("name")), renderNames);
     }
 
-    function showLogout() {
-      let btn = document.querySelector(".logout-btn");
-      if (!btn) {
-        btn = document.createElement("button");
-        btn.className = "logout-btn";
-        btn.textContent = "Esci";
-        btn.onclick = () => {
-          localStorage.removeItem("loggedIn");
-          localStorage.removeItem("username");
-          localStorage.removeItem("password");
-          location.reload();
+    $("logoutBtn").onclick = function(){
+      localStorage.removeItem("loggedIn");
+      showLogin();
+    };
+
+    function showLogin(){
+      $("mainApp").style.display="none";
+      $("loginBox").style.display="block";
+    }
+
+    window.onload = function(){
+      if(localStorage.getItem("loggedIn")==="yes") showMainApp();
+      else showLogin();
+    };
+  </script>
+</body>
+</html>
