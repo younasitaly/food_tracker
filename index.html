@@ -8,18 +8,13 @@
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
+
   <style>
     body {
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      font-family: "Segoe UI", sans-serif;
+      padding: 10px;
       background: #f4f4f4;
-      color: #333;
-    }
-
-    .container {
-      max-width: 700px;
-      margin: auto;
-      padding: 20px;
     }
 
     h2 {
@@ -42,17 +37,12 @@
       border: none;
       font-weight: bold;
       cursor: pointer;
-      border-radius: 4px;
-    }
-
-    button:hover {
-      background-color: #43a047;
     }
 
     table {
       width: 100%;
-      margin-top: 20px;
       border-collapse: collapse;
+      margin-top: 15px;
       background: white;
     }
 
@@ -61,57 +51,118 @@
       padding: 8px;
       font-size: 14px;
       text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 120px;
     }
 
     th {
-      background: #e0e0e0;
+      background: #f0f0f0;
     }
 
-    .expired { background: #ffcccc; }
-    .expiring-soon { background: #fff3cd; }
+    .expired {
+      background-color: #ffdddd;
+    }
+
+    .expiring-soon {
+      background-color: #fff4cc;
+    }
+
+    #loginBox {
+      max-width: 350px;
+      margin: 80px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
     .logout-btn {
       position: fixed;
-      top: 16px;
-      right: 16px;
-      padding: 10px 16px;
-      background: #ef4444;
+      top: 10px;
+      right: 10px;
+      background: #f44336;
       color: white;
-      font-weight: bold;
+      padding: 8px 14px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
+      font-weight: bold;
       cursor: pointer;
-      z-index: 1000;
-      width: auto;
+      z-index: 999;
     }
 
-    .login-box {
-      max-width: 400px;
-      margin: 80px auto;
-      padding: 20px;
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
       background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
       border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
     }
 
     @media (max-width: 600px) {
       th, td {
         font-size: 12px;
-        padding: 6px;
+        padding: 4px;
+        max-width: 80px;
       }
 
       .logout-btn {
-        padding: 8px 12px;
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+
+      input, button {
         font-size: 14px;
+      }
+
+      .container {
+        margin: 20px 10px;
+        padding: 15px;
       }
     }
   </style>
+
+  <!-- Load app.js -->
+  <script type="module" src="app.js"></script>
 </head>
 <body>
 
-<div id="app"></div>
+<!-- 🔐 Login Box -->
+<div id="loginBox">
+  <h2>🔐 Accesso Amministratore</h2>
+  <input id="username" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
+  <button onclick="checkLogin()">Accedi</button>
+</div>
 
-<!-- Firebase SDK -->
-<script type="module" src="app.js"></script>
+<!-- ✅ Main App -->
+<div id="mainApp" style="display:none;">
+  <div class="container">
+    <h2>🍲 Tracciatore Alimenti</h2>
+    <form onsubmit="event.preventDefault(); addItem();">
+      <input list="productList" id="itemName" placeholder="Nome prodotto" />
+      <datalist id="productList"></datalist>
+      <input id="datePrepared" type="date" />
+      <input id="expiryDate" type="date" />
+      <button type="submit">Aggiungi Prodotto</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Preparato</th>
+          <th>Scadenza</th>
+          <th>Stato</th>
+          <th>Azioni</th>
+        </tr>
+      </thead>
+      <tbody id="itemTable"></tbody>
+    </table>
+  </div>
+</div>
+
 </body>
 </html>
