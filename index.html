@@ -11,10 +11,12 @@
 
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 10px;
       background: #f4f4f4;
+      position: relative;
+      min-height: 100vh;
     }
 
     h2 {
@@ -37,9 +39,10 @@
       border: none;
       font-weight: bold;
       cursor: pointer;
-      border-radius: 4px;
-      transition: background-color 0.3s ease;
+      border-radius: 5px;
+      transition: background-color 0.2s ease;
     }
+
     button:hover {
       background-color: #45a049;
     }
@@ -49,8 +52,6 @@
       border-collapse: collapse;
       margin-top: 15px;
       background: white;
-      border-radius: 8px;
-      overflow: hidden;
     }
 
     th, td {
@@ -58,10 +59,10 @@
       padding: 8px;
       font-size: 14px;
       text-align: center;
-      max-width: 120px;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 120px;
     }
 
     th {
@@ -97,9 +98,12 @@
       font-weight: bold;
       cursor: pointer;
       z-index: 999;
-      width: auto;
-      box-sizing: content-box;
-      user-select: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: background-color 0.2s ease;
+    }
+
+    .logout-btn:hover {
+      background-color: #d32f2f;
     }
 
     .container {
@@ -109,6 +113,41 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Action buttons styling */
+    td > button {
+      font-size: 16px;
+      padding: 4px 8px;
+      margin: 0 4px;
+      min-width: 36px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      transition: background-color 0.2s ease;
+    }
+
+    td > button:hover {
+      background-color: #45a049;
+    }
+
+    td > button.delete-btn {
+      background-color: #f44336;
+    }
+
+    td > button.delete-btn:hover {
+      background-color: #d32f2f;
+    }
+
+    td.actions-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      min-width: 110px;
     }
 
     @media (max-width: 600px) {
@@ -155,7 +194,9 @@
     const itemsRef = collection(db, "foodItems");
     const namesRef = collection(db, "productNames");
 
-    function $(id) { return document.getElementById(id); }
+    function $(id) {
+      return document.getElementById(id);
+    }
 
     window.checkLogin = function () {
       const u = $("username").value.trim();
@@ -193,16 +234,15 @@
       const newName = prompt("Modifica nome prodotto:", current.name);
       const newPrepared = prompt("Modifica data di preparazione:", current.prepared);
       const newExpiry = prompt("Modifica data di scadenza:", current.expiry);
-
       if (newName && newPrepared && newExpiry) {
-        setDoc(doc(db, "foodItems", id), { name: newName, prepared: newPrepared, expiry: newExpiry });
-        setDoc(doc(db, "productNames", newName), { name: newName });
+        setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+        setDoc(doc(namesRef, newName), { name: newName });
       }
     };
 
     window.deleteItem = function (id) {
       if (confirm("Vuoi eliminare questo prodotto?")) {
-        deleteDoc(doc(db, "foodItems", id));
+        deleteDoc(doc(itemsRef, id));
       }
     };
 
@@ -235,13 +275,13 @@
         const row = document.createElement("tr");
         row.className = rowClass;
         row.innerHTML = `
-          <td title="${item.name}">${item.name}</td>
+          <td>${item.name}</td>
           <td>${formatDate(item.prepared)}</td>
           <td>${formatDate(item.expiry)}</td>
           <td>${status}</td>
-          <td>
-            <button onclick='editItem("${id}", ${JSON.stringify(item)})' aria-label="Modifica">✏️</button>
-            <button onclick='deleteItem("${id}")' aria-label="Elimina">🗑️</button>
+          <td class="actions-cell">
+            <button onclick='editItem("${id}", ${JSON.stringify(item)})' aria-label="Modifica" title="Modifica">✏️</button>
+            <button onclick='deleteItem("${id}")' aria-label="Elimina" title="Elimina" class="delete-btn">🗑️</button>
           </td>`;
         table.appendChild(row);
       });
@@ -268,67 +308,13 @@
     }
 
     function showLogout() {
-      // Avoid creating multiple logout buttons on reload:
-      if ($(".logout-btn")) return;
-
-      const btn = document.createElement("button");
-      btn.textContent = "Esci";
-      btn.className = "logout-btn";
-      btn.onclick = () => {
-        localStorage.removeItem("loggedIn");
-        localStorage.removeItem("username");
-        localStorage.removeItem("password");
-        location.reload();
-      };
-      document.body.appendChild(btn);
-    }
-
-    window.onload = function () {
-      if (localStorage.getItem("loggedIn") === "yes"
-          && localStorage.getItem("username") === "Admin"
-          && localStorage.getItem("password") === "Miraggio@46") {
-        showMainApp();
-      }
-    };
-  </script>
-</head>
-
-<body>
-
-  <!-- Login Box -->
-  <div id="loginBox">
-    <h2>🔐 Accesso Amministratore</h2>
-    <input id="username" placeholder="Username" autocomplete="username" />
-    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-    <button onclick="checkLogin()">Accedi</button>
-  </div>
-
-  <!-- Main App -->
-  <div id="mainApp" style="display:none;">
-    <div class="container">
-      <h2>🍲 Tracciatore Alimenti</h2>
-      <form onsubmit="event.preventDefault(); addItem();">
-        <input list="productList" id="itemName" placeholder="Nome prodotto" autocomplete="off" />
-        <datalist id="productList"></datalist>
-        <input id="datePrepared" type="date" />
-        <input id="expiryDate" type="date" />
-        <button type="submit">Aggiungi</button>
-      </form>
-
-      <table aria-label="Lista prodotti">
-        <thead>
-          <tr>
-            <th>Prodotto</th>
-            <th>Preparato il</th>
-            <th>Scadenza</th>
-            <th>Stato</th>
-            <th>Azioni</th>
-          </tr>
-        </thead>
-        <tbody id="itemTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-</body>
-</html>
+      let btn = document.querySelector(".logout-btn");
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.className = "logout-btn";
+        btn.textContent = "Esci";
+        btn.onclick = () => {
+          localStorage.removeItem("loggedIn");
+          localStorage.removeItem("username");
+          localStorage.removeItem("password");
+          location.reload();
