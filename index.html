@@ -1,174 +1,183 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tracciatore Alimenti</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="192.png" />
-  <link rel="apple-touch-icon" href="192.png" />
-  <meta name="theme-color" content="#4CAF50" />
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tracciatore Alimenti</title>
+<style>
+  /* RESET */
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 1rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9fafb; color: #333;
+  }
+  h2 {
+    color: #4CAF50; text-align: center; margin-bottom: 1rem;
+  }
+  button {
+    cursor: pointer; border: none; border-radius: 6px;
+    background: #4CAF50; color: white; font-weight: 600;
+    padding: 0.5rem 1rem;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background: #388E3C;
+  }
+  input, select {
+    padding: 0.5rem; margin-bottom: 0.75rem; font-size: 1rem;
+    border: 1px solid #ccc; border-radius: 6px;
+    width: 100%;
+  }
+  /* LOGIN */
+  #loginBox {
+    max-width: 400px; margin: 6rem auto; background: white;
+    padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+  }
+  #loginBox input, #loginBox button {
+    font-size: 1rem;
+  }
 
+  /* MAIN APP */
+  #app {
+    max-width: 720px; margin: 2rem auto; background: white;
+    padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+    display: none;
+  }
+
+  /* LOGOUT BUTTON */
+  #logoutBtn {
+    position: fixed; top: 1rem; right: 1rem;
+    background: #f44336; padding: 0.4rem 1rem;
+    font-weight: 600; border-radius: 8px;
+    display: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  #logoutBtn:hover {
+    background: #ba000d;
+  }
+
+  /* FORM */
+  form > * {
+    display: block;
+  }
+
+  /* TABLE */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin-top: 1rem;
+  }
+  thead {
+    background: #e6f4ea;
+  }
+  th, td {
+    padding: 0.75rem 1rem; text-align: center; font-size: 0.95rem;
+    border-bottom: 1px solid #ddd;
+  }
+  tbody tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+  tbody tr.expired {
+    background: #ffe5e5;
+    color: #a00;
+    font-weight: bold;
+  }
+  tbody tr.expiring-soon {
+    background: #fff8dc;
+  }
+
+  /* ACTION BUTTONS */
+  .btn-edit, .btn-delete {
+    background: transparent;
+    color: #4CAF50;
+    font-size: 1.2rem;
+    margin: 0 4px;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    line-height: 28px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    border: 1px solid #4CAF50;
+  }
+  .btn-edit:hover {
+    background: #4CAF50; color: white;
+  }
+  .btn-delete {
+    color: #f44336; border-color: #f44336;
+  }
+  .btn-delete:hover {
+    background: #f44336; color: white;
+  }
+
+  /* EDIT MODAL */
+  #editModal {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center; align-items: center;
+  }
+  #editModal .modal-content {
+    background: white; padding: 1.5rem; border-radius: 12px;
+    width: 320px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  #editModal label {
+    font-weight: 600; margin-top: 0.5rem; display: block;
+  }
+  #editModal input {
+    margin-top: 0.3rem;
+  }
+  #editModal button {
+    margin-top: 1rem; width: 48%; font-weight: 700;
+  }
+  #editModal .btn-cancel {
+    background: #888; margin-left: 4%;
+  }
+  @media (max-width: 600px) {
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f7fa;
-      color: #333;
+      padding: 0.5rem;
+    }
+    #app {
       padding: 1rem;
     }
-
-    h2 {
-      text-align: center;
-      color: #4CAF50;
-      margin-bottom: 1rem;
+    table, th, td {
+      font-size: 0.85rem;
     }
-
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+    #editModal .modal-content {
+      width: 90vw;
     }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #388E3C;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      background-color: white;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    thead {
-      background-color: #f0f0f0;
-    }
-
-    .expired {
-      background-color: #ffe5e5;
-    }
-
-    .expiring-soon {
-      background-color: #fff9c4;
-    }
-
-    #loginBox {
-      max-width: 400px;
-      margin: 80px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-
-    #mainApp {
-      max-width: 700px;
-      margin: auto;
-      display: none;
-    }
-
-    #logoutBtn {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      background-color: #f44336;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      display: none;
-      z-index: 1000;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 0.5rem;
-      }
-      th, td {
-        font-size: 12px;
-        padding: 8px;
-      }
-      input, button {
-        font-size: 14px;
-      }
-    }
-  </style>
-
-  <!-- ✅ Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <!-- ✅ Firebase Init -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
-      authDomain: "food-tracker-fca47.firebaseapp.com",
-      projectId: "food-tracker-fca47",
-      storageBucket: "food-tracker-fca47.appspot.com",
-      messagingSenderId: "769456892190",
-      appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
+  }
+</style>
 </head>
 <body>
 
-<!-- 🔐 LOGIN BOX -->
+<!-- LOGIN BOX -->
 <div id="loginBox">
   <h2>🔐 Accesso Amministratore</h2>
-  <input id="email" type="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-  <button onclick="login()">Accedi</button>
+  <input id="username" placeholder="Username" autocomplete="username" />
+  <input id="password" placeholder="Password" type="password" autocomplete="current-password" />
+  <button id="btnLogin">Accedi</button>
 </div>
 
-<!-- ✅ LOGOUT BUTTON -->
+<!-- LOGOUT BUTTON -->
 <button id="logoutBtn">Esci</button>
 
-<!-- ✅ MAIN APP -->
-<div id="mainApp">
+<!-- MAIN APP -->
+<div id="app">
   <h2>🍲 Tracciatore Alimenti</h2>
 
-  <input id="itemName" placeholder="Nome Prodotto" type="text" list="productList" />
-  <datalist id="productList"></datalist>
-  <input id="datePrepared" placeholder="Data di Preparazione" type="date" />
-  <input id="expiryDate" placeholder="Data di Scadenza" type="date" />
-  <button onclick="addItem()">Aggiungi</button>
+  <form id="addForm">
+    <input id="itemName" list="productList" placeholder="Nome prodotto" autocomplete="off" />
+    <datalist id="productList"></datalist>
+    <input id="datePrepared" type="date" />
+    <input id="expiryDate" type="date" />
+    <button type="submit">Aggiungi Prodotto</button>
+  </form>
 
   <table>
     <thead>
       <tr>
-        <th>Prodotto</th>
+        <th>Nome</th>
         <th>Preparato</th>
-        <th>Scade</th>
+        <th>Scadenza</th>
         <th>Stato</th>
         <th>Azioni</th>
       </tr>
@@ -177,46 +186,305 @@
   </table>
 </div>
 
-<!-- ✅ Auth Script -->
-<script>
-  const auth = firebase.auth();
+<!-- EDIT MODAL -->
+<div id="editModal">
+  <div class="modal-content">
+    <h3>Modifica Prodotto</h3>
+    <label for="editName">Nome prodotto</label>
+    <input id="editName" type="text" />
+    <label for="editPrepared">Data preparazione</label>
+    <input id="editPrepared" type="date" />
+    <label for="editExpiry">Data scadenza</label>
+    <input id="editExpiry" type="date" />
+    <div style="margin-top:1rem; text-align:right;">
+      <button id="btnSaveEdit">Salva</button>
+      <button id="btnCancelEdit" class="btn-cancel">Annulla</button>
+    </div>
+  </div>
+</div>
 
-  const logoutBtn = document.getElementById("logoutBtn");
-  const loginBox = document.getElementById("loginBox");
-  const mainApp = document.getElementById("mainApp");
+<script type="module">
+// Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc, doc,
+  setDoc, onSnapshot, query, orderBy, updateDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      logoutBtn.style.display = "inline-block";
-      loginBox.style.display = "none";
-      mainApp.style.display = "block";
-    } else {
-      logoutBtn.style.display = "none";
-      loginBox.style.display = "block";
-      mainApp.style.display = "none";
-    }
-  });
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
+  authDomain: "food-tracker-fca47.firebaseapp.com",
+  projectId: "food-tracker-fca47",
+  storageBucket: "food-tracker-fca47.appspot.com",
+  messagingSenderId: "769456892190",
+  appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+};
 
-  logoutBtn.addEventListener("click", () => {
-    auth.signOut().then(() => {
-      location.reload();
-    }).catch((error) => {
-      alert("Errore logout: " + error.message);
+// Init Firebase and Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const itemsRef = collection(db, "foodItems");
+const namesRef = collection(db, "productNames");
+
+// DOM Elements
+const loginBox = document.getElementById('loginBox');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const btnLogin = document.getElementById('btnLogin');
+
+const logoutBtn = document.getElementById('logoutBtn');
+const appDiv = document.getElementById('app');
+
+const addForm = document.getElementById('addForm');
+const itemNameInput = document.getElementById('itemName');
+const datePreparedInput = document.getElementById('datePrepared');
+const expiryDateInput = document.getElementById('expiryDate');
+
+const itemTable = document.getElementById('itemTable');
+const productList = document.getElementById('productList');
+
+const editModal = document.getElementById('editModal');
+const editNameInput = document.getElementById('editName');
+const editPreparedInput = document.getElementById('editPrepared');
+const editExpiryInput = document.getElementById('editExpiry');
+const btnSaveEdit = document.getElementById('btnSaveEdit');
+const btnCancelEdit = document.getElementById('btnCancelEdit');
+
+let editingId = null;
+
+// Simple login: username=Admin, password=Miraggio@46
+btnLogin.addEventListener('click', () => {
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value.trim();
+  if(u === 'Admin' && p === 'Miraggio@46') {
+    localStorage.setItem('loggedIn', 'yes');
+    showApp();
+  } else {
+    alert('Credenziali non valide');
+  }
+});
+
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('loggedIn');
+  location.reload();
+});
+
+function showApp() {
+  loginBox.style.display = 'none';
+  appDiv.style.display = 'block';
+  logoutBtn.style.display = 'inline-block';
+  listenItems();
+  listenProductNames();
+}
+
+function showLogin() {
+  loginBox.style.display = 'block';
+  appDiv.style.display = 'none';
+  logoutBtn.style.display = 'none';
+}
+
+// On page load
+if(localStorage.getItem('loggedIn') === 'yes') {
+  showApp();
+} else {
+  showLogin();
+}
+
+// Format date as DD/MM/YYYY
+function formatDate(isoDate) {
+  if(!isoDate) return '';
+  const d = new Date(isoDate);
+  return d.toLocaleDateString('it-IT');
+}
+
+// Calculate status (expired, expiring soon, ok)
+function getStatus(expiryDateStr) {
+  if(!expiryDateStr) return '—';
+  const today = new Date();
+  const expiryDate = new Date(expiryDateStr);
+  const diffDays = (expiryDate - today)/(1000*3600*24);
+  if(diffDays < 0) return 'Scaduto';
+  if(diffDays <= 1) return 'Scade a breve';
+  return 'Ok';
+}
+
+function getStatusClass(expiryDateStr) {
+  if(!expiryDateStr) return '';
+  const today = new Date();
+  const expiryDate = new Date(expiryDateStr);
+  const diffDays = (expiryDate - today)/(1000*3600*24);
+  if(diffDays < 0) return 'expired';
+  if(diffDays <= 1) return 'expiring-soon';
+  return '';
+}
+
+// Add item handler
+addForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = itemNameInput.value.trim();
+  const prepared = datePreparedInput.value;
+  const expiry = expiryDateInput.value;
+
+  if(!name) return alert('Inserisci il nome del prodotto');
+  if(!prepared) return alert('Inserisci la data di preparazione');
+  if(!expiry) return alert('Inserisci la data di scadenza');
+  if(new Date(prepared) > new Date(expiry)) return alert('La data di preparazione deve essere prima della scadenza');
+
+  // Add item in Firestore
+  try {
+    await addDoc(itemsRef, {
+      name,
+      prepared,
+      expiry
+    });
+    // Add product name in productNames collection if new
+    addProductNameIfNew(name);
+    addForm.reset();
+  } catch(err) {
+    alert('Errore aggiunta prodotto: ' + err.message);
+  }
+});
+
+// Listen items in realtime
+function listenItems() {
+  const q = query(itemsRef, orderBy('expiry', 'asc'));
+  onSnapshot(q, snapshot => {
+    itemTable.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const item = docSnap.data();
+      const id = docSnap.id;
+
+      const tr = document.createElement('tr');
+      const status = getStatus(item.expiry);
+      tr.className = getStatusClass(item.expiry);
+
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>${formatDate(item.prepared)}</td>
+        <td>${formatDate(item.expiry)}</td>
+        <td>${status}</td>
+        <td>
+          <button class="btn-edit" title="Modifica" data-id="${id}">&#9998;</button>
+          <button class="btn-delete" title="Elimina" data-id="${id}">&times;</button>
+        </td>
+      `;
+      itemTable.appendChild(tr);
+    });
+    // Add listeners for edit/delete buttons
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.onclick = () => openEditModal(btn.dataset.id);
+    });
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.onclick = () => deleteItem(btn.dataset.id);
     });
   });
+}
 
-  function login() {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    auth.signInWithEmailAndPassword(email, password)
-      .catch(error => {
-        alert("Errore login: " + error.message);
-      });
+// Delete item
+async function deleteItem(id) {
+  if(confirm('Sei sicuro di voler eliminare questo prodotto?')) {
+    try {
+      await deleteDoc(doc(db, 'foodItems', id));
+    } catch(e) {
+      alert('Errore eliminazione: ' + e.message);
+    }
   }
+}
+
+// Open edit modal and fill data
+function openEditModal(id) {
+  editingId = id;
+  getDocData(id).then(data => {
+    if(data) {
+      editNameInput.value = data.name;
+      editPreparedInput.value = data.prepared;
+      editExpiryInput.value = data.expiry;
+      editModal.style.display = 'flex';
+      editNameInput.focus();
+    } else {
+      alert('Prodotto non trovato');
+    }
+  });
+}
+
+// Get single doc data by ID
+async function getDocData(id) {
+  try {
+    const d = await doc(db, 'foodItems', id);
+    const snap = await d.get();
+    return snap.exists() ? snap.data() : null;
+  } catch(e) {
+    return null;
+  }
+}
+
+// Save edit
+btnSaveEdit.onclick = async () => {
+  const name = editNameInput.value.trim();
+  const prepared = editPreparedInput.value;
+  const expiry = editExpiryInput.value;
+
+  if(!name) return alert('Inserisci il nome del prodotto');
+  if(!prepared) return alert('Inserisci la data di preparazione');
+  if(!expiry) return alert('Inserisci la data di scadenza');
+  if(new Date(prepared) > new Date(expiry)) return alert('La data di preparazione deve essere prima della scadenza');
+
+  try {
+    await updateDoc(doc(db, 'foodItems', editingId), {
+      name,
+      prepared,
+      expiry
+    });
+    addProductNameIfNew(name);
+    closeEditModal();
+  } catch(e) {
+    alert('Errore modifica: ' + e.message);
+  }
+};
+btnCancelEdit.onclick = () => closeEditModal();
+
+function closeEditModal() {
+  editingId = null;
+  editModal.style.display = 'none';
+}
+
+// PRODUCT NAMES (for datalist)
+function listenProductNames() {
+  onSnapshot(namesRef, snapshot => {
+    productList.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const name = docSnap.data().name;
+      const option = document.createElement('option');
+      option.value = name;
+      productList.appendChild(option);
+    });
+  });
+}
+
+// Add product name if not exists
+async function addProductNameIfNew(name) {
+  const q = query(namesRef);
+  const snapshot = await getDocs(q);
+  let exists = false;
+  snapshot.forEach(docSnap => {
+    if(docSnap.data().name.toLowerCase() === name.toLowerCase()) exists = true;
+  });
+  if(!exists) {
+    try {
+      await addDoc(namesRef, { name });
+    } catch(e) {
+      // ignore errors here
+    }
+  }
+}
+
 </script>
 
-<!-- ✅ Main App JS -->
-<script type="module" src="app.js"></script>
+<script type="module">
+// To import getDocs needed in addProductNameIfNew
+import { getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+</script>
 
 </body>
 </html>
