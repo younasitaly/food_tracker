@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tracciatore Alimenti</title>
-
-  <!-- PWA manifest and icon -->
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icon-192.png" />
+  <link rel="icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
-
   <style>
     body { font-family: sans-serif; margin: 10px; background: #f4f4f4; }
     h2 { text-align: center; color: #4CAF50; }
@@ -29,8 +26,6 @@
     .expired { background-color: #ffcccc; }
     .expiring-soon { background-color: #fff3cd; }
   </style>
-
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
@@ -57,7 +52,7 @@
     apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
     authDomain: "food-tracker-fca47.firebaseapp.com",
     projectId: "food-tracker-fca47",
-    storageBucket: "food-tracker-fca47.firebasestorage.app",
+    storageBucket: "food-tracker-fca47.appspot.com",
     messagingSenderId: "769456892190",
     appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
   };
@@ -151,11 +146,12 @@
   namesRef.orderBy("name").onSnapshot(renderProductNames);
 </script>
 
-<!-- Service worker for PWA -->
+<!-- 🔧 Service Worker for PWA -->
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registered'));
+      .then(() => console.log('✅ Service Worker registered'))
+      .catch(err => console.error('❌ Service Worker registration failed:', err));
   }
 </script>
 </body>
