@@ -7,20 +7,19 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
-  <meta name="theme-color" content="#121212" />
+  <meta name="theme-color" content="#4CAF50" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #1f1f1f, #2c3e50);
-      color: #f1f1f1;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
     }
 
     h2 {
       text-align: center;
-      color: #00e676;
-      margin-top: 20px;
+      color: #2e7d32;
+      margin-bottom: 20px;
     }
 
     input, button {
@@ -30,67 +29,68 @@
       font-size: 16px;
       box-sizing: border-box;
       border-radius: 6px;
-      border: none;
-    }
-
-    input {
-      background: #2a2a2a;
-      color: #fff;
-      border: 1px solid #444;
+      border: 1px solid #ccc;
     }
 
     button {
-      background-color: #00c853;
+      background-color: #4CAF50;
       color: white;
+      border: none;
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s;
     }
 
     button:hover {
-      background-color: #00e676;
+      background-color: #388e3c;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
-      background: #1e1e1e;
+      background: white;
       border-radius: 10px;
       overflow: hidden;
     }
 
     th, td {
-      border: 1px solid #444;
+      border: 1px solid #ddd;
       padding: 8px;
       font-size: 14px;
       text-align: center;
-      color: #fff;
-      white-space: nowrap;
     }
 
     th {
-      background: #2e2e2e;
+      background: #f0f0f0;
     }
 
     .expired {
-      background-color: #b71c1c;
-      color: white;
+      background-color: #ffcccc;
     }
 
     .expiring-soon {
-      background-color: #f57f17;
-      color: black;
+      background-color: #fff3cd;
+    }
+
+    #loginBox {
+      max-width: 350px;
+      margin: 80px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     .logout-btn-wrapper {
-      display: flex;
-      justify-content: flex-end;
-      padding: 10px;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
     }
 
     .logout-btn {
-      background: #d32f2f;
+      background: #f44336;
       color: white;
       padding: 6px 12px;
       border: none;
@@ -100,21 +100,18 @@
     }
 
     .container {
-      max-width: 800px;
-      margin: 30px auto;
-      background: #121212;
+      max-width: 700px;
+      margin: 80px auto 40px;
+      background: white;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
 
-    #loginBox {
-      max-width: 350px;
-      margin: 80px auto;
-      background: #1e1e1e;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,255,128,0.1);
+    td button {
+      margin: 0 2px;
+      padding: 4px 8px;
+      font-size: 14px;
     }
 
     @media (max-width: 600px) {
@@ -122,20 +119,22 @@
         font-size: 12px;
         padding: 4px;
       }
-      .container {
-        margin: 10px;
-        padding: 15px;
-      }
-      .logout-btn {
-        font-size: 12px;
-        padding: 5px 10px;
-      }
+
       input, button {
         font-size: 14px;
       }
+
+      .container {
+        margin: 60px 10px 20px;
+        padding: 15px;
+      }
+
+      td button {
+        font-size: 12px;
+        padding: 3px 6px;
+      }
     }
   </style>
-
   <script type="module">
     const $ = id => document.getElementById(id);
 
@@ -226,7 +225,6 @@
                 }
               } else {
                 status = `${daysLeft} giorni rimasti`;
-                rowClass = "";
                 fresh.push({ id, item, rowClass, status });
               }
             });
@@ -260,7 +258,7 @@
           function showApp() {
             $("loginBox").style.display = "none";
             $("mainApp").style.display = "block";
-            $("logoutWrapper").style.display = "flex";
+            $("logoutWrapper").style.display = "block";
             onSnapshot(itemsRef, renderItems);
             onSnapshot(namesRef, renderNames);
             $("datePrepared").value = new Date().toISOString().split("T")[0];
@@ -288,12 +286,14 @@
   <div class="logout-btn-wrapper" id="logoutWrapper" style="display:none;">
     <button class="logout-btn" onclick="localStorage.clear(); location.reload();">Esci</button>
   </div>
+
   <div id="loginBox">
     <h2>🔐 Accesso Amministratore</h2>
     <input id="username" placeholder="Username" />
     <input id="password" type="password" placeholder="Password" />
     <button onclick="checkLogin()">Accedi</button>
   </div>
+
   <div id="mainApp" style="display:none;">
     <div class="container">
       <h2>🍲 Tracciatore Alimenti</h2>
