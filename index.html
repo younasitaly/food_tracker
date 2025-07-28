@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tracciatore Alimenti</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="192.png" />
@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#4CAF50" />
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 10px;
       background: linear-gradient(to right, #f8f9fa, #e9ecef);
@@ -30,6 +30,11 @@
       box-sizing: border-box;
       border-radius: 6px;
       border: 1px solid #ccc;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      border-color: #4caf50;
+      outline: none;
     }
     button {
       background-color: #4CAF50;
@@ -38,6 +43,7 @@
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s;
+      border-radius: 6px;
     }
     button:hover {
       background-color: #388e3c;
@@ -49,6 +55,7 @@
       background: white;
       border-radius: 10px;
       overflow: hidden;
+      table-layout: fixed;
     }
     th, td {
       border: 1px solid #ddd;
@@ -56,7 +63,8 @@
       font-size: 14px;
       text-align: center;
       white-space: nowrap;
-      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     th {
       background: #f0f0f0;
@@ -76,9 +84,9 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
     .logout-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
+      position: fixed;
+      top: 15px;
+      right: 15px;
       background: #f44336;
       color: white;
       padding: 8px 14px;
@@ -86,7 +94,9 @@
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 999;
+      z-index: 9999;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      user-select: none;
     }
     .container {
       max-width: 700px;
@@ -96,37 +106,32 @@
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
-    /* Buttons container for actions */
-    .action-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
+    form > * {
+      margin-bottom: 10px;
     }
     .action-buttons button {
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+      margin: 0 3px;
       padding: 0;
+      line-height: 1;
       border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      transition: background-color 0.3s;
     }
     .action-buttons button:hover {
-      background-color: #388e3c;
+      filter: brightness(85%);
     }
-    .action-buttons button.delete-btn {
-      background-color: #f44336;
+    .delete-btn {
+      background-color: #e53935;
+      color: white;
     }
-    .action-buttons button.delete-btn:hover {
-      background-color: #d32f2f;
+    .delete-btn:hover {
+      background-color: #b71c1c;
     }
     @media (max-width: 600px) {
       th, td {
         font-size: 12px;
-        padding: 4px;
+        padding: 6px 4px;
       }
       .logout-btn {
         padding: 6px 10px;
@@ -138,6 +143,11 @@
       .container {
         margin: 20px 10px;
         padding: 15px;
+      }
+      .action-buttons button {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
       }
     }
   </style>
@@ -164,8 +174,10 @@
 
     const $ = id => document.getElementById(id);
 
+    // Global store for items to avoid JSON-injection in onclick
+    let itemsData = {};
+
     function formatDate(dateStr) {
-      if (!dateStr) return "";
       const [y, m, d] = dateStr.split("-");
       return `${d}/${m}/${y}`;
     }
@@ -186,21 +198,33 @@
       const prepared = $("datePrepared").value;
       const expiry = $("expiryDate").value;
       if (!name || !prepared || !expiry) return alert("Completa tutti i campi");
-      await addDoc(itemsRef, { name, prepared, expiry });
-      await setDoc(doc(namesRef, name), { name });
-      $("itemName").value = "";
-      $("datePrepared").value = new Date().toISOString().split("T")[0];
-      $("expiryDate").value = "";
+
+      try {
+        await addDoc(itemsRef, { name, prepared, expiry });
+        await setDoc(doc(namesRef, name), { name });
+        $("itemName").value = "";
+        $("datePrepared").value = new Date().toISOString().split("T")[0];
+        $("expiryDate").value = "";
+      } catch(e) {
+        alert("Errore durante l'aggiunta: " + e.message);
+      }
     }
 
-    function editItem(id, item) {
+    function editItem(id) {
+      const item = itemsData[id];
+      if (!item) return alert("Elemento non trovato");
+
       const newName = prompt("Modifica nome prodotto", item.name);
+      if (!newName) return;
+
       const newPrepared = prompt("Modifica data di preparazione (YYYY-MM-DD)", item.prepared);
+      if (!newPrepared) return;
+
       const newExpiry = prompt("Modifica data di scadenza (YYYY-MM-DD)", item.expiry);
-      if (newName && newPrepared && newExpiry) {
-        setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
-        setDoc(doc(namesRef, newName), { name: newName });
-      }
+      if (!newExpiry) return;
+
+      setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+      setDoc(doc(namesRef, newName), { name: newName });
     }
 
     function deleteItem(id) {
@@ -213,11 +237,15 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      itemsData = {}; // reset
+
       const expired = [], soon = [], fresh = [];
 
       snapshot.forEach(docSnap => {
         const item = docSnap.data();
         const id = docSnap.id;
+        itemsData[id] = item;
+
         const expiryDate = new Date(item.expiry);
         const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
 
@@ -225,90 +253,122 @@
         if (expiryDate < today) {
           status = "Scaduto";
           rowClass = "expired";
-          expired.push({ id, item, rowClass, status });
+          expired.push({ id, rowClass, status });
         } else if (daysLeft <= 1) {
           status = "In Scadenza";
           rowClass = "expiring-soon";
-          soon.push({ id, item, rowClass, status });
+          soon.push({ id, rowClass, status });
+
           if (!localStorage.getItem(`notified_${id}`)) {
             alert(`🔔 Il prodotto "${item.name}" scade tra 24 ore o meno!`);
             localStorage.setItem(`notified_${id}`, "true");
           }
         } else {
           status = `${daysLeft} giorni rimasti`;
-          fresh.push({ id, item, rowClass, status });
+          fresh.push({ id, rowClass, status });
         }
       });
 
-      [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
+      [...expired, ...soon, ...fresh].forEach(({ id, rowClass, status }) => {
+        const item = itemsData[id];
         const row = document.createElement("tr");
         row.className = rowClass;
         row.innerHTML = `
-          <td>${item.name}</td>
+          <td title="${item.name}">${item.name}</td>
           <td>${formatDate(item.prepared)}</td>
           <td>${formatDate(item.expiry)}</td>
           <td>${status}</td>
           <td class="action-buttons">
-            <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
-            <button class="delete-btn" onclick='deleteItem("${id}")'>🗑️</button>
+            <button title="Modifica" onclick='editItem("${id}")'>✏️</button>
+            <button title="Elimina" class="delete-btn" onclick='deleteItem("${id}")'>🗑️</button>
           </td>`;
         table.appendChild(row);
-      });
-    }
-
-    async function loadProductNames() {
-      const select = $("itemName");
-      select.innerHTML = "";
-      const snapshot = await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js").then(({getDocs}) => getDocs(namesRef));
-      snapshot.forEach(docSnap => {
-        const name = docSnap.data().name;
-        const option = document.createElement("option");
-        option.value = name;
-        select.appendChild(option);
       });
     }
 
     function showApp() {
       $("loginBox").style.display = "none";
       $("appContainer").style.display = "block";
-      loadProductNames();
-      $("datePrepared").value = new Date().toISOString().split("T")[0];
+    }
+
+    function logout() {
+      localStorage.removeItem("loggedIn");
+      location.reload();
+    }
+
+    async function setupAutoComplete() {
+      const namesSet = new Set();
+      onSnapshot(namesRef, snapshot => {
+        snapshot.forEach(doc => namesSet.add(doc.id));
+        const dataList = $("productNames");
+        dataList.innerHTML = "";
+        [...namesSet].sort().forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          dataList.appendChild(opt);
+        });
+      });
     }
 
     window.onload = () => {
-      if (localStorage.getItem("loggedIn") === "yes") showApp();
-      else {
-        $("loginBox").style.display = "block";
-        $("appContainer").style.display = "none";
+      if (localStorage.getItem("loggedIn") === "yes") {
+        showApp();
       }
 
-      // Listen Firestore real-time updates
+      // Set datePrepared default to today
+      $("datePrepared").value = new Date().toISOString().split("T")[0];
+
+      setupAutoComplete();
+
       onSnapshot(itemsRef, renderItems);
     };
 
-    window.logout = () => {
-      localStorage.removeItem("loggedIn");
-      location.reload();
-    };
+    window.logout = logout;
+    window.addItem = addItem;
+    window.editItem = editItem;
+    window.deleteItem = deleteItem;
+    window.checkLogin = checkLogin;
   </script>
 </head>
 <body>
-  <button class="logout-btn" onclick="logout()">Logout</button>
 
   <div id="loginBox">
     <h2>Login</h2>
-    <input id="username" placeholder="Username" autocomplete="username" />
+    <input id="username" type="text" placeholder="Username" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-    <button onclick="checkLogin()">Accedi</button>
+    <button onclick="checkLogin()">Entra</button>
   </div>
 
   <div class="container" id="appContainer" style="display:none;">
+    <button class="logout-btn" onclick="logout()">Esci</button>
     <h2>Tracciatore Alimenti</h2>
     <form onsubmit="event.preventDefault(); addItem();">
-      <input list="productNames" id="itemName" name="itemName" placeholder="Nome Prodotto" required autocomplete="off" />
+      <input
+        list="productNames"
+        id="itemName"
+        name="itemName"
+        placeholder="Nome prodotto"
+        autocomplete="off"
+        required
+      />
       <datalist id="productNames"></datalist>
-      <input type="date" id="datePrepared" name="datePrepared" required />
-      <input type="date" id="expiryDate" name="expiryDate" required />
+
+      <input
+        id="datePrepared"
+        name="datePrepared"
+        type="date"
+        required
+        title="Data di preparazione"
+      />
+
+      <input
+        id="expiryDate"
+        name="expiryDate"
+        type="date"
+        required
+        title="Data di scadenza"
+      />
+
       <button type="submit">Aggiungi</button>
     </form>
 
@@ -316,8 +376,8 @@
       <thead>
         <tr>
           <th>Prodotto</th>
-          <th>Data Preparazione</th>
-          <th>Data Scadenza</th>
+          <th>Preparato il</th>
+          <th>Scadenza</th>
           <th>Stato</th>
           <th>Azioni</th>
         </tr>
@@ -325,5 +385,6 @@
       <tbody id="itemTable"></tbody>
     </table>
   </div>
+
 </body>
 </html>
