@@ -72,18 +72,19 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
+    .logout-btn-wrapper {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: -40px;
+    }
     .logout-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
       background: #f44336;
       color: white;
-      padding: 8px 14px;
+      padding: 6px 12px;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      z-index: 999;
     }
     .container {
       max-width: 700px;
@@ -238,15 +239,9 @@
     function showApp() {
       $("loginBox").style.display = "none";
       $("mainApp").style.display = "block";
-      const btn = document.createElement("button");
-      btn.textContent = "Esci";
-      btn.className = "logout-btn";
-      btn.onclick = () => { localStorage.clear(); location.reload(); };
-      document.body.appendChild(btn);
-
+      $("logoutWrapper").style.display = "flex";
       onSnapshot(itemsRef, renderItems);
       onSnapshot(namesRef, renderNames);
-
       $("datePrepared").value = new Date().toISOString().split("T")[0];
     }
 
@@ -258,6 +253,9 @@
   </script>
 </head>
 <body>
+  <div class="logout-btn-wrapper" id="logoutWrapper" style="display:none;">
+    <button class="logout-btn" onclick="localStorage.clear(); location.reload();">Esci</button>
+  </div>
   <div id="loginBox">
     <h2>🔐 Accesso Amministratore</h2>
     <input id="username" placeholder="Username" />
