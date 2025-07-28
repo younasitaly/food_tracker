@@ -7,19 +7,22 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
-  <meta name="theme-color" content="#4CAF50" />
+  <meta name="theme-color" content="#121212" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      padding: 10px;
-      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      padding: 0;
+      background: linear-gradient(135deg, #1f1f1f, #2c3e50);
+      color: #f1f1f1;
     }
+
     h2 {
       text-align: center;
-      color: #2e7d32;
-      margin-bottom: 20px;
+      color: #00e676;
+      margin-top: 20px;
     }
+
     input, button {
       width: 100%;
       padding: 10px;
@@ -27,59 +30,67 @@
       font-size: 16px;
       box-sizing: border-box;
       border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
       border: none;
+    }
+
+    input {
+      background: #2a2a2a;
+      color: #fff;
+      border: 1px solid #444;
+    }
+
+    button {
+      background-color: #00c853;
+      color: white;
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s;
     }
+
     button:hover {
-      background-color: #388e3c;
+      background-color: #00e676;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
-      background: white;
+      background: #1e1e1e;
       border-radius: 10px;
       overflow: hidden;
     }
+
     th, td {
-      border: 1px solid #ddd;
+      border: 1px solid #444;
       padding: 8px;
       font-size: 14px;
       text-align: center;
+      color: #fff;
       white-space: nowrap;
     }
+
     th {
-      background: #f0f0f0;
+      background: #2e2e2e;
     }
+
     .expired {
-      background-color: #ffcccc;
+      background-color: #b71c1c;
+      color: white;
     }
+
     .expiring-soon {
-      background-color: #fff3cd;
+      background-color: #f57f17;
+      color: black;
     }
-    #loginBox {
-      max-width: 350px;
-      margin: 80px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+
     .logout-btn-wrapper {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      z-index: 1000;
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px;
     }
+
     .logout-btn {
-      background: #f44336;
+      background: #d32f2f;
       color: white;
       padding: 6px 12px;
       border: none;
@@ -87,43 +98,44 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     .container {
-      max-width: 700px;
-      margin: 60px auto;
-      background: white;
+      max-width: 800px;
+      margin: 30px auto;
+      background: #121212;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 128, 0.2);
     }
-    .actions .btn-group {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      flex-wrap: wrap;
+
+    #loginBox {
+      max-width: 350px;
+      margin: 80px auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,255,128,0.1);
     }
-    .actions button {
-      width: auto;
-      min-width: 30px;
-      padding: 6px 8px;
-    }
+
     @media (max-width: 600px) {
       th, td {
         font-size: 12px;
         padding: 4px;
       }
+      .container {
+        margin: 10px;
+        padding: 15px;
+      }
       .logout-btn {
-        padding: 6px 10px;
-        font-size: 13px;
+        font-size: 12px;
+        padding: 5px 10px;
       }
       input, button {
         font-size: 14px;
       }
-      .container {
-        margin: 20px 10px;
-        padding: 15px;
-      }
     }
   </style>
+
   <script type="module">
     const $ = id => document.getElementById(id);
 
@@ -137,6 +149,7 @@
     function setupFirebase() {
       import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js").then(({ initializeApp }) => {
         import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js").then(({ getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot }) => {
+
           const firebaseConfig = {
             apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
             authDomain: "food-tracker-fca47.firebaseapp.com",
@@ -213,23 +226,22 @@
                 }
               } else {
                 status = `${daysLeft} giorni rimasti`;
+                rowClass = "";
                 fresh.push({ id, item, rowClass, status });
               }
             });
 
             [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
               const row = document.createElement("tr");
-              row.className = `${rowClass}`;
+              row.className = rowClass;
               row.innerHTML = `
                 <td>${item.name}</td>
                 <td>${formatDate(item.prepared)}</td>
                 <td>${formatDate(item.expiry)}</td>
                 <td>${status}</td>
-                <td class="actions">
-                  <div class="btn-group">
-                    <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
-                    <button onclick='deleteItem("${id}")'>🗑️</button>
-                  </div>
+                <td>
+                  <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+                  <button onclick='deleteItem("${id}")'>🗑️</button>
                 </td>`;
               table.appendChild(row);
             });
@@ -264,6 +276,7 @@
               alert("Credenziali non valide");
             }
           };
+
         });
       });
     }
