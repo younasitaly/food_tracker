@@ -8,78 +8,72 @@
   <link rel="icon" href="192.png" />
   <link rel="apple-touch-icon" href="192.png" />
   <meta name="theme-color" content="#4CAF50" />
-
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
       padding: 10px;
-      background: #f4f4f4;
+      background: linear-gradient(to right, #f8f9fa, #e9ecef);
     }
-
     h2 {
       text-align: center;
-      color: #4CAF50;
+      color: #2e7d32;
       margin-bottom: 20px;
     }
-
     input, button {
       width: 100%;
       padding: 10px;
       margin: 6px 0;
       font-size: 16px;
       box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
-
     button {
       background-color: #4CAF50;
       color: white;
       border: none;
       font-weight: bold;
       cursor: pointer;
+      transition: background 0.3s;
     }
-
+    button:hover {
+      background-color: #388e3c;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 15px;
       background: white;
+      border-radius: 10px;
+      overflow: hidden;
     }
-
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
       font-size: 14px;
       text-align: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
-      max-width: 120px;
     }
-
     th {
       background: #f0f0f0;
     }
-
     .expired {
-      background-color: #ffdddd;
+      background-color: #ffcccc;
     }
-
     .expiring-soon {
-      background-color: #fff4cc;
+      background-color: #fff3cd;
     }
-
     #loginBox {
       max-width: 350px;
       margin: 80px auto;
       background: white;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
     .logout-btn {
-      position: fixed;
+      position: absolute;
       top: 10px;
       right: 10px;
       background: #f44336;
@@ -91,44 +85,37 @@
       cursor: pointer;
       z-index: 999;
     }
-
     .container {
-      max-width: 600px;
+      max-width: 700px;
       margin: 60px auto;
       background: white;
       padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
-
     @media (max-width: 600px) {
       th, td {
         font-size: 12px;
         padding: 4px;
-        max-width: 80px;
       }
-
       .logout-btn {
         padding: 6px 10px;
         font-size: 13px;
       }
-
       input, button {
         font-size: 14px;
       }
-
       .container {
         margin: 20px 10px;
         padding: 15px;
       }
     }
   </style>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, deleteDoc, doc,
-      setDoc, onSnapshot, query
+      setDoc, onSnapshot
     } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -168,12 +155,10 @@
       const prepared = $("datePrepared").value;
       const expiry = $("expiryDate").value;
       if (!name || !prepared || !expiry) return alert("Completa tutti i campi");
-
       await addDoc(itemsRef, { name, prepared, expiry });
       await setDoc(doc(namesRef, name), { name });
-
       $("itemName").value = "";
-      $("datePrepared").value = "";
+      $("datePrepared").value = new Date().toISOString().split("T")[0];
       $("expiryDate").value = "";
     }
 
@@ -207,16 +192,24 @@
 
         let status = "", rowClass = "";
         if (expiryDate < today) {
-          status = "Scaduto"; rowClass = "expired"; expired.push({ id, item, rowClass, status });
+          status = "Scaduto";
+          rowClass = "expired";
+          expired.push({ id, item, rowClass, status });
         } else if (daysLeft <= 1) {
-          status = "In Scadenza"; rowClass = "expiring-soon"; soon.push({ id, item, rowClass, status });
+          status = "In Scadenza";
+          rowClass = "expiring-soon";
+          soon.push({ id, item, rowClass, status });
+          if (!localStorage.getItem(`notified_${id}`)) {
+            alert(`🔔 Il prodotto "${item.name}" scade tra 24 ore o meno!`);
+            localStorage.setItem(`notified_${id}`, "true");
+          }
         } else {
-          status = `${daysLeft} giorni rimasti`; fresh.push({ id, item, rowClass, status });
+          status = `${daysLeft} giorni rimasti`;
+          fresh.push({ id, item, rowClass, status });
         }
       });
 
-      const allItems = [...expired, ...soon, ...fresh];
-      allItems.forEach(({ id, item, rowClass, status }) => {
+      [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
         const row = document.createElement("tr");
         row.className = rowClass;
         row.innerHTML = `
@@ -253,6 +246,8 @@
 
       onSnapshot(itemsRef, renderItems);
       onSnapshot(namesRef, renderNames);
+
+      $("datePrepared").value = new Date().toISOString().split("T")[0];
     }
 
     if (localStorage.getItem("loggedIn") === "yes") showApp();
@@ -269,7 +264,6 @@
     <input id="password" type="password" placeholder="Password" />
     <button onclick="checkLogin()">Accedi</button>
   </div>
-
   <div id="mainApp" style="display:none;">
     <div class="container">
       <h2>🍲 Tracciatore Alimenti</h2>
@@ -280,7 +274,6 @@
         <input id="expiryDate" type="date" />
         <button type="submit">Aggiungi Prodotto</button>
       </form>
-
       <table>
         <thead>
           <tr>
