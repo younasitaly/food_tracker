@@ -1,148 +1,199 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Food Tracker</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tracciatore Alimenti</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0; padding: 0; background: #f5f7fa;
+      color: #333;
+    }
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    margin: 0;
-    padding: 20px;
-    color: #333;
-  }
-  h2 {
-    text-align: center;
-    color: #2e7d32;
-  }
-  #loginBox, #appContainer {
-    max-width: 480px;
-    margin: 40px auto;
-    background: white;
-    padding: 20px 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  input, select, button {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-  }
-  input:focus, select:focus {
-    border-color: #4caf50;
-    outline: none;
-  }
-  button {
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #388e3c;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 25px;
-    font-size: 14px;
-  }
-  th, td {
-    text-align: center;
-    border-bottom: 1px solid #ddd;
-    padding: 10px 6px;
-    max-width: 130px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  th {
-    background-color: #e8f5e9;
-    font-weight: 600;
-  }
-  tr.expired {
-    background-color: #ffebee;
-    color: #c62828;
-  }
-  tr.expiring {
-    background-color: #fffde7;
-    color: #f9a825;
-  }
-  .btn-action {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    margin: 0 5px;
-  }
-  .btn-delete {
-    color: #e53935;
-  }
-  .btn-edit {
-    color: #4caf50;
-  }
+    /* Container */
+    .container {
+      max-width: 650px;
+      margin: 60px auto 40px;
+      background: white;
+      padding: 25px 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
 
-  /* Small fixed logout button top right */
-  #logoutBtn {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background-color: #e53935;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-weight: 600;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 3px 8px rgb(229 57 53 / 0.6);
-    z-index: 9999;
-    display: none;
-    white-space: nowrap;
-  }
+    h2 {
+      text-align: center;
+      color: #4CAF50;
+      margin-bottom: 25px;
+    }
 
-  @media (max-width: 520px) {
-    #loginBox, #appContainer {
-      margin: 20px auto;
-      padding: 15px 18px;
+    /* Login Box */
+    #loginBox {
+      max-width: 400px;
+      margin: 120px auto;
+      background: white;
+      padding: 30px 30px 40px;
+      border-radius: 10px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+
+    input[type=text], input[type=password], input[type=date], input[list] {
+      width: 100%;
+      padding: 10px 14px;
+      margin: 10px 0 16px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      transition: border-color 0.3s ease;
+    }
+    input[type=text]:focus, input[type=password]:focus, input[type=date]:focus, input[list]:focus {
+      border-color: #4caf50;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #4caf50;
+      color: white;
+      font-weight: 700;
+      font-size: 17px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background: #43a047;
+    }
+
+    /* Main App Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 22px;
+      font-size: 14px;
     }
     th, td {
-      font-size: 12px;
-      max-width: 90px;
-      padding: 8px 4px;
+      text-align: center;
+      padding: 10px 8px;
+      border-bottom: 1px solid #ddd;
+      max-width: 120px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
-  }
-</style>
+    th {
+      background: #f1f8f3;
+      font-weight: 600;
+      color: #4caf50;
+    }
+
+    tr.expired {
+      background: #ffebee;
+      color: #c62828;
+      font-weight: 600;
+    }
+    tr.expiring-soon {
+      background: #fff8e1;
+      color: #f9a825;
+      font-weight: 600;
+    }
+
+    /* Buttons inside table */
+    .btn-action {
+      font-size: 16px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin: 0 5px;
+      padding: 4px 6px;
+      border-radius: 5px;
+      transition: background-color 0.25s ease;
+    }
+    .btn-edit {
+      color: #2e7d32;
+    }
+    .btn-edit:hover {
+      background: #c8e6c9;
+    }
+    .btn-delete {
+      color: #c62828;
+    }
+    .btn-delete:hover {
+      background: #ffcdd2;
+    }
+
+    /* Logout button top-right */
+    #logoutBtn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      padding: 10px 16px;
+      background: #e53935;
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+      z-index: 1000;
+      display: none; /* hidden initially */
+    }
+    #logoutBtn:hover {
+      background: #b71c1c;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container, #loginBox {
+        margin: 30px 15px;
+        padding: 20px 20px 30px;
+      }
+      th, td {
+        font-size: 12px;
+        max-width: 70px;
+        padding: 8px 4px;
+      }
+      button {
+        font-size: 15px;
+      }
+      #logoutBtn {
+        padding: 8px 14px;
+        font-size: 13px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<!-- Login Screen -->
+<!-- Login Form -->
 <div id="loginBox">
   <h2>🔐 Accesso Amministratore</h2>
-  <input id="username" type="text" placeholder="Username" autocomplete="off" />
-  <input id="password" type="password" placeholder="Password" autocomplete="off" />
-  <button id="loginBtn">Accedi</button>
+  <input id="username" placeholder="Username" autocomplete="username" />
+  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+  <button onclick="checkLogin()">Accedi</button>
 </div>
 
 <!-- Main App -->
-<div id="appContainer" style="display:none;">
+<div class="container" id="mainApp" style="display:none;">
   <h2>🍲 Tracciatore Alimenti</h2>
-
-  <form id="addForm">
-    <input list="productList" id="itemName" placeholder="Nome prodotto" required autocomplete="off" />
+  <form onsubmit="event.preventDefault(); addItem();">
+    <input list="productList" id="itemName" placeholder="Nome prodotto" autocomplete="off" />
     <datalist id="productList"></datalist>
-    <input id="datePrepared" type="date" required />
-    <input id="expiryDate" type="date" required />
+    <input id="datePrepared" type="date" />
+    <input id="expiryDate" type="date" />
     <button type="submit">Aggiungi Prodotto</button>
   </form>
 
-  <table aria-label="Lista prodotti">
+  <table>
     <thead>
       <tr>
         <th>Nome</th>
@@ -156,239 +207,189 @@
   </table>
 </div>
 
-<button id="logoutBtn">Esci</button>
+<button id="logoutBtn" onclick="logout()">Esci</button>
 
 <script>
-  const correctUser = 'Admin';
-  const correctPass = 'Miraggio@46';
+  // Shortcut function
+  const $ = id => document.getElementById(id);
 
-  const loginBox = document.getElementById('loginBox');
-  const appContainer = document.getElementById('appContainer');
-  const logoutBtn = document.getElementById('logoutBtn');
+  // Constants
+  const ADMIN_USER = "Admin";
+  const ADMIN_PASS = "Miraggio@46";
 
-  const LS_FOOD_ITEMS = 'foodItems';
-  const LS_PRODUCT_NAMES = 'productNames';
-  const LS_LOGGED_IN = 'loggedIn';
+  // LocalStorage keys
+  const STORAGE_KEY_ITEMS = "foodTrackerItems";
+  const STORAGE_KEY_NAMES = "foodTrackerProductNames";
+  const STORAGE_KEY_LOGGEDIN = "foodTrackerLoggedIn";
 
-  const itemTable = document.getElementById('itemTable');
-  const addForm = document.getElementById('addForm');
-  const itemNameInput = document.getElementById('itemName');
-  const datePreparedInput = document.getElementById('datePrepared');
-  const expiryDateInput = document.getElementById('expiryDate');
-  const productList = document.getElementById('productList');
+  // Elements
+  const loginBox = $("loginBox");
+  const mainApp = $("mainApp");
+  const logoutBtn = $("logoutBtn");
+  const itemTable = $("itemTable");
+  const productList = $("productList");
 
-  let foodItems = [];
+  // Data in memory
+  let items = [];
   let productNames = [];
 
-  function showLogin() {
-    loginBox.style.display = 'block';
-    appContainer.style.display = 'none';
-    logoutBtn.style.display = 'none';
+  // --- LOGIN FUNCTIONS ---
+  function checkLogin() {
+    const u = $("username").value.trim();
+    const p = $("password").value.trim();
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+      localStorage.setItem(STORAGE_KEY_LOGGEDIN, "yes");
+      loginBox.style.display = "none";
+      mainApp.style.display = "block";
+      logoutBtn.style.display = "block";
+      loadData();
+      renderItems();
+      renderProductNames();
+    } else {
+      alert("Credenziali non valide");
+    }
   }
 
-  function showApp() {
-    loginBox.style.display = 'none';
-    appContainer.style.display = 'block';
-    logoutBtn.style.display = 'inline-block';
+  function logout() {
+    localStorage.removeItem(STORAGE_KEY_LOGGEDIN);
+    loginBox.style.display = "block";
+    mainApp.style.display = "none";
+    logoutBtn.style.display = "none";
   }
 
+  // --- STORAGE ---
   function loadData() {
-    try {
-      foodItems = JSON.parse(localStorage.getItem(LS_FOOD_ITEMS)) || [];
-    } catch {
-      foodItems = [];
-    }
-    try {
-      productNames = JSON.parse(localStorage.getItem(LS_PRODUCT_NAMES)) || [];
-    } catch {
-      productNames = [];
-    }
+    const storedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
+    const storedNames = localStorage.getItem(STORAGE_KEY_NAMES);
+    items = storedItems ? JSON.parse(storedItems) : [];
+    productNames = storedNames ? JSON.parse(storedNames) : [];
   }
 
   function saveData() {
-    localStorage.setItem(LS_FOOD_ITEMS, JSON.stringify(foodItems));
-    localStorage.setItem(LS_PRODUCT_NAMES, JSON.stringify(productNames));
+    localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEY_NAMES, JSON.stringify(productNames));
   }
 
-  function renderProductList() {
-    productList.innerHTML = '';
-    productNames.forEach(name => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      productList.appendChild(opt);
-    });
-  }
-
-  function formatDate(dateStr) {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('it-IT');
-  }
-
-  function getStatus(expiryStr) {
-    const now = new Date();
-    const expiry = new Date(expiryStr);
-    const diffDays = Math.floor((expiry - now) / (1000*60*60*24));
-
-    if (diffDays < 0) return 'Scaduto';
-    if (diffDays <= 1) return 'Sta per scadere';
-    return 'Ok';
-  }
-
+  // --- RENDER ---
   function renderItems() {
-    itemTable.innerHTML = '';
-    if (foodItems.length === 0) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 5;
-      td.textContent = 'Nessun prodotto aggiunto';
-      td.style.fontStyle = 'italic';
-      tr.appendChild(td);
-      itemTable.appendChild(tr);
-      return;
-    }
-    foodItems.forEach((item, idx) => {
-      const tr = document.createElement('tr');
-      const status = getStatus(item.expiry);
-      if (status === 'Scaduto') tr.classList.add('expired');
-      else if (status === 'Sta per scadere') tr.classList.add('expiring');
+    itemTable.innerHTML = "";
+    const today = new Date();
+    today.setHours(0,0,0,0);
 
-      // Name
-      const tdName = document.createElement('td');
-      tdName.textContent = item.name;
-      tr.appendChild(tdName);
+    items.forEach((item, i) => {
+      const expiryDate = new Date(item.expiry);
+      const daysLeft = Math.floor((expiryDate - today) / (1000*60*60*24));
 
-      // Prepared
-      const tdPrepared = document.createElement('td');
-      tdPrepared.textContent = formatDate(item.prepared);
-      tr.appendChild(tdPrepared);
+      let statusText = "";
+      let rowClass = "";
+      if (expiryDate < today) {
+        statusText = "Scaduto";
+        rowClass = "expired";
+      } else if (daysLeft <= 1) {
+        statusText = "In Scadenza";
+        rowClass = "expiring-soon";
+      } else {
+        statusText = `${daysLeft} giorni rimasti`;
+      }
 
-      // Expiry
-      const tdExpiry = document.createElement('td');
-      tdExpiry.textContent = formatDate(item.expiry);
-      tr.appendChild(tdExpiry);
+      const tr = document.createElement("tr");
+      tr.className = rowClass;
 
-      // Status
-      const tdStatus = document.createElement('td');
-      tdStatus.textContent = status;
-      tr.appendChild(tdStatus);
-
-      // Actions
-      const tdActions = document.createElement('td');
-
-      // Edit button
-      const editBtn = document.createElement('button');
-      editBtn.className = 'btn-action btn-edit';
-      editBtn.title = 'Modifica';
-      editBtn.innerHTML = '✏️';
-      editBtn.onclick = () => editItem(idx);
-      tdActions.appendChild(editBtn);
-
-      // Delete button
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn-action btn-delete';
-      delBtn.title = 'Elimina';
-      delBtn.innerHTML = '🗑️';
-      delBtn.onclick = () => {
-        if (confirm(`Eliminare "${item.name}"?`)) {
-          foodItems.splice(idx,1);
-          saveData();
-          renderItems();
-        }
-      };
-      tdActions.appendChild(delBtn);
-
-      tr.appendChild(tdActions);
+      tr.innerHTML = `
+        <td title="${item.name}">${item.name}</td>
+        <td>${formatDate(item.prepared)}</td>
+        <td>${formatDate(item.expiry)}</td>
+        <td>${statusText}</td>
+        <td>
+          <button class="btn-action btn-edit" title="Modifica" onclick="editItem(${i})">✏️</button>
+          <button class="btn-action btn-delete" title="Elimina" onclick="deleteItem(${i})">🗑️</button>
+        </td>
+      `;
 
       itemTable.appendChild(tr);
     });
   }
 
-  function editItem(index) {
-    const item = foodItems[index];
-    if (!item) return;
-
-    const newName = prompt('Modifica nome prodotto:', item.name);
-    if (newName === null) return;
-
-    const newPrepared = prompt('Modifica data preparato (YYYY-MM-DD):', item.prepared);
-    if (newPrepared === null) return;
-
-    const newExpiry = prompt('Modifica data scadenza (YYYY-MM-DD):', item.expiry);
-    if (newExpiry === null) return;
-
-    if (!newName.trim() || !newPrepared.trim() || !newExpiry.trim()) {
-      alert('Tutti i campi sono obbligatori.');
-      return;
-    }
-
-    item.name = newName.trim();
-    item.prepared = newPrepared.trim();
-    item.expiry = newExpiry.trim();
-
-    if (!productNames.includes(item.name)) {
-      productNames.push(item.name);
-      renderProductList();
-    }
-
-    saveData();
-    renderItems();
+  function renderProductNames() {
+    productList.innerHTML = "";
+    productNames.forEach(name => {
+      const option = document.createElement("option");
+      option.value = name;
+      productList.appendChild(option);
+    });
   }
 
-  addForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = itemNameInput.value.trim();
-    const prepared = datePreparedInput.value;
-    const expiry = expiryDateInput.value;
+  // --- ADD/EDIT/DELETE ---
+  let editIndex = -1;
+
+  function addItem() {
+    const name = $("itemName").value.trim();
+    const prepared = $("datePrepared").value;
+    const expiry = $("expiryDate").value;
 
     if (!name || !prepared || !expiry) {
-      alert('Compilare tutti i campi.');
+      alert("Compila tutti i campi");
       return;
     }
 
-    const newItem = { name, prepared, expiry };
-    foodItems.push(newItem);
+    if (new Date(prepared) > new Date(expiry)) {
+      alert("La data di preparazione non può essere successiva alla scadenza");
+      return;
+    }
 
-    if (!productNames.includes(name)) {
-      productNames.push(name);
-      renderProductList();
+    if (editIndex === -1) {
+      // Add new
+      items.push({name, prepared, expiry});
+      if (!productNames.includes(name)) {
+        productNames.push(name);
+      }
+    } else {
+      // Edit existing
+      items[editIndex] = {name, prepared, expiry};
+      if (!productNames.includes(name)) {
+        productNames.push(name);
+      }
+      editIndex = -1;
     }
 
     saveData();
     renderItems();
+    renderProductNames();
+    clearForm();
+  }
 
-    addForm.reset();
-  });
+  function editItem(i) {
+    const item = items[i];
+    $("itemName").value = item.name;
+    $("datePrepared").value = item.prepared;
+    $("expiryDate").value = item.expiry;
+    editIndex = i;
+  }
 
-  document.getElementById('loginBtn').addEventListener('click', () => {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-
-    if (user === correctUser && pass === correctPass) {
-      localStorage.setItem(LS_LOGGED_IN, 'yes');
-      showApp();
-      loadData();
-      renderProductList();
+  function deleteItem(i) {
+    if (confirm(`Sei sicuro di eliminare "${items[i].name}"?`)) {
+      items.splice(i, 1);
+      saveData();
       renderItems();
-    } else {
-      alert('Credenziali non valide');
     }
-  });
+  }
 
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem(LS_LOGGED_IN);
-    showLogin();
-  });
+  function clearForm() {
+    $("itemName").value = "";
+    $("datePrepared").value = "";
+    $("expiryDate").value = "";
+  }
 
-  // On page load check login state
+  // --- ON LOAD ---
   window.onload = () => {
-    const logged = localStorage.getItem(LS_LOGGED_IN);
-    if (logged === 'yes') {
+    const loggedIn = localStorage.getItem(STORAGE_KEY_LOGGEDIN);
+    if (loggedIn === "yes") {
+      loginBox.style.display = "none";
+      mainApp.style.display = "block";
+      logoutBtn.style.display = "block";
       loadData();
-      renderProductList();
       renderItems();
-      showApp();
-    } else {
-      showLogin();
+      renderProductNames();
     }
   };
 </script>
