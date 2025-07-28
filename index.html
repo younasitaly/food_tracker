@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -216,7 +215,8 @@
         }
       });
 
-      [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
+      const allItems = [...expired, ...soon, ...fresh];
+      allItems.forEach(({ id, item, rowClass, status }) => {
         const row = document.createElement("tr");
         row.className = rowClass;
         row.innerHTML = `
