@@ -3,318 +3,297 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tracciatore Alimenti</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="192.png" />
+  <link rel="apple-touch-icon" href="192.png" />
+  <meta name="theme-color" content="#4CAF50" />
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      background: #f0f2f5;
-      color: #222;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 10px;
+      background: #f4f4f4;
     }
-    #loginBox, #mainApp {
-      max-width: 500px;
-      margin: 100px auto 50px;
-      background: white;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    }
+
     h2 {
       text-align: center;
       color: #4CAF50;
       margin-bottom: 20px;
     }
+
     input, button {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+      padding: 10px;
+      margin: 6px 0;
       font-size: 16px;
-      border-radius: 5px;
-      border: 1.5px solid #ccc;
       box-sizing: border-box;
     }
-    input:focus {
-      border-color: #4caf50;
-      outline: none;
-    }
+
     button {
-      background: #4caf50;
+      background-color: #4CAF50;
       color: white;
       border: none;
+      font-weight: bold;
       cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
     }
-    button:hover {
-      background: #43a047;
-    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 15px;
+      background: white;
     }
+
     th, td {
-      padding: 10px 8px;
-      border-bottom: 1px solid #ddd;
-      text-align: center;
-    }
-    th {
-      background: #e8f5e9;
-      color: #2e7d32;
-    }
-    tr.expired {
-      background: #ffebee;
-      color: #b71c1c;
-      font-weight: bold;
-    }
-    tr.expiring-soon {
-      background: #fff8e1;
-      color: #f9a825;
-      font-weight: bold;
-    }
-    .btn-action {
-      cursor: pointer;
-      border: none;
-      background: none;
-      font-size: 18px;
-      margin: 0 5px;
-    }
-    .btn-edit { color: #2e7d32; }
-    .btn-delete { color: #b71c1c; }
-
-    #logoutBtn {
-      position: fixed;
-      top: 15px;
-      right: 15px;
-      background: #e53935;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
+      border: 1px solid #ddd;
+      padding: 8px;
       font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      display: none;
-      z-index: 9999;
-      max-width: 120px;
       text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
+      max-width: 120px;
     }
-    #logoutBtn:hover {
-      background: #ab000d;
+
+    th {
+      background: #f0f0f0;
     }
-  </style>
-</head>
-<body>
 
-<div id="loginBox">
-  <h2>🔐 Accesso Amministratore</h2>
-  <input id="username" placeholder="Username" autocomplete="username" />
-  <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
-  <button id="loginBtn">Accedi</button>
-</div>
+    .expired {
+      background-color: #ffdddd;
+    }
 
-<div id="mainApp" style="display:none;">
-  <h2>🍲 Tracciatore Alimenti</h2>
-  <form id="itemForm">
-    <input list="productList" id="itemName" placeholder="Nome prodotto" autocomplete="off" />
-    <datalist id="productList"></datalist>
-    <input id="datePrepared" type="date" />
-    <input id="expiryDate" type="date" />
-    <button type="submit">Aggiungi Prodotto</button>
-  </form>
+    .expiring-soon {
+      background-color: #fff4cc;
+    }
 
-  <table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Preparato</th>
-        <th>Scadenza</th>
-        <th>Stato</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody id="itemTable"></tbody>
-  </table>
-</div>
+    #loginBox {
+      max-width: 350px;
+      margin: 80px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
-<button id="logoutBtn">Esci</button>
+    .logout-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #f44336;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 999;
+    }
 
-<script>
-  const loginBox = document.getElementById("loginBox");
-  const mainApp = document.getElementById("mainApp");
-  const logoutBtn = document.getElementById("logoutBtn");
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+    }
 
-  const usernameInput = document.getElementById("username");
-  const passwordInput = document.getElementById("password");
-  const loginBtn = document.getElementById("loginBtn");
-
-  const itemForm = document.getElementById("itemForm");
-  const itemNameInput = document.getElementById("itemName");
-  const datePreparedInput = document.getElementById("datePrepared");
-  const expiryDateInput = document.getElementById("expiryDate");
-  const productList = document.getElementById("productList");
-  const itemTable = document.getElementById("itemTable");
-
-  const ADMIN_USER = "Admin";
-  const ADMIN_PASS = "Miraggio@46";
-
-  let items = [];
-  let productNames = [];
-  let editIndex = -1;
-
-  function saveData() {
-    localStorage.setItem("foodTrackerItems", JSON.stringify(items));
-    localStorage.setItem("foodTrackerProductNames", JSON.stringify(productNames));
-  }
-  function loadData() {
-    items = JSON.parse(localStorage.getItem("foodTrackerItems") || "[]");
-    productNames = JSON.parse(localStorage.getItem("foodTrackerProductNames") || "[]");
-  }
-
-  function renderProductNames() {
-    productList.innerHTML = "";
-    productNames.forEach(name => {
-      const option = document.createElement("option");
-      option.value = name;
-      productList.appendChild(option);
-    });
-  }
-
-  function renderItems() {
-    itemTable.innerHTML = "";
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    items.forEach((item, i) => {
-      const expiryDate = new Date(item.expiry);
-      const daysLeft = Math.floor((expiryDate - today) / (1000*60*60*24));
-      let statusText = "";
-      let rowClass = "";
-
-      if (expiryDate < today) {
-        statusText = "Scaduto";
-        rowClass = "expired";
-      } else if (daysLeft <= 1) {
-        statusText = "In Scadenza";
-        rowClass = "expiring-soon";
-      } else {
-        statusText = `${daysLeft} giorni rimasti`;
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 12px;
+        padding: 4px;
+        max-width: 80px;
       }
 
-      const tr = document.createElement("tr");
-      tr.className = rowClass;
-      tr.innerHTML = `
-        <td title="${item.name}">${item.name}</td>
-        <td>${item.prepared}</td>
-        <td>${item.expiry}</td>
-        <td>${statusText}</td>
-        <td>
-          <button class="btn-action btn-edit" title="Modifica" onclick="editItem(${i})">✏️</button>
-          <button class="btn-action btn-delete" title="Elimina" onclick="deleteItem(${i})">🗑️</button>
-        </td>
-      `;
-      itemTable.appendChild(tr);
-    });
-  }
+      .logout-btn {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
 
-  function checkLogin() {
-    const u = usernameInput.value.trim();
-    const p = passwordInput.value.trim();
-    if (u === ADMIN_USER && p === ADMIN_PASS) {
-      localStorage.setItem("foodTrackerLoggedIn", "yes");
-      loginBox.style.display = "none";
-      mainApp.style.display = "block";
-      logoutBtn.style.display = "block";
-      loadData();
-      renderProductNames();
-      renderItems();
-    } else {
-      alert("Credenziali non valide");
+      input, button {
+        font-size: 14px;
+      }
+
+      .container {
+        margin: 20px 10px;
+        padding: 15px;
+      }
     }
-  }
+  </style>
 
-  function logout() {
-    localStorage.removeItem("foodTrackerLoggedIn");
-    loginBox.style.display = "block";
-    mainApp.style.display = "none";
-    logoutBtn.style.display = "none";
-    editIndex = -1;
-    clearForm();
-  }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, deleteDoc, doc,
+      setDoc, onSnapshot, query
+    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-  function addItem() {
-    const name = itemNameInput.value.trim();
-    const prepared = datePreparedInput.value;
-    const expiry = expiryDateInput.value;
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
+      authDomain: "food-tracker-fca47.firebaseapp.com",
+      projectId: "food-tracker-fca47",
+      storageBucket: "food-tracker-fca47.appspot.com",
+      messagingSenderId: "769456892190",
+      appId: "1:769456892190:web:9c2a2e7d676f1f2d85010f"
+    };
 
-    if (!name || !prepared || !expiry) {
-      alert("Per favore, completa tutti i campi.");
-      return;
-    }
-    if (new Date(prepared) > new Date(expiry)) {
-      alert("La data di preparazione non può essere successiva alla scadenza.");
-      return;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const itemsRef = collection(db, "foodItems");
+    const namesRef = collection(db, "productNames");
+
+    const $ = id => document.getElementById(id);
+
+    function formatDate(dateStr) {
+      const [y, m, d] = dateStr.split("-");
+      return `${d}/${m}/${y}`;
     }
 
-    if (editIndex === -1) {
-      items.push({name, prepared, expiry});
-      if (!productNames.includes(name)) productNames.push(name);
-    } else {
-      items[editIndex] = {name, prepared, expiry};
-      if (!productNames.includes(name)) productNames.push(name);
-      editIndex = -1;
+    function checkLogin() {
+      const u = $("username").value.trim();
+      const p = $("password").value.trim();
+      if (u === "Admin" && p === "Miraggio@46") {
+        localStorage.setItem("loggedIn", "yes");
+        showApp();
+      } else {
+        alert("Credenziali non valide");
+      }
     }
-    saveData();
-    renderProductNames();
-    renderItems();
-    clearForm();
-  }
 
-  function editItem(i) {
-    const item = items[i];
-    itemNameInput.value = item.name;
-    datePreparedInput.value = item.prepared;
-    expiryDateInput.value = item.expiry;
-    editIndex = i;
-  }
+    async function addItem() {
+      const name = $("itemName").value.trim();
+      const prepared = $("datePrepared").value;
+      const expiry = $("expiryDate").value;
+      if (!name || !prepared || !expiry) return alert("Completa tutti i campi");
 
-  function deleteItem(i) {
-    if (confirm(`Sei sicuro di eliminare "${items[i].name}"?`)) {
-      items.splice(i, 1);
-      saveData();
-      renderItems();
+      await addDoc(itemsRef, { name, prepared, expiry });
+      await setDoc(doc(namesRef, name), { name });
+
+      $("itemName").value = "";
+      $("datePrepared").value = "";
+      $("expiryDate").value = "";
     }
-  }
 
-  function clearForm() {
-    itemNameInput.value = "";
-    datePreparedInput.value = "";
-    expiryDateInput.value = "";
-    editIndex = -1;
-  }
-
-  // EVENTS
-  loginBtn.addEventListener("click", checkLogin);
-  logoutBtn.addEventListener("click", logout);
-  itemForm.addEventListener("submit", function(e){
-    e.preventDefault();
-    addItem();
-  });
-
-  // ON LOAD
-  window.onload = () => {
-    if(localStorage.getItem("foodTrackerLoggedIn") === "yes") {
-      loginBox.style.display = "none";
-      mainApp.style.display = "block";
-      logoutBtn.style.display = "block";
-      loadData();
-      renderProductNames();
-      renderItems();
+    function editItem(id, item) {
+      const newName = prompt("Modifica nome prodotto", item.name);
+      const newPrepared = prompt("Modifica data di preparazione", item.prepared);
+      const newExpiry = prompt("Modifica data di scadenza", item.expiry);
+      if (newName && newPrepared && newExpiry) {
+        setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+        setDoc(doc(namesRef, newName), { name: newName });
+      }
     }
-  }
-</script>
+
+    function deleteItem(id) {
+      if (confirm("Vuoi eliminare questo prodotto?")) deleteDoc(doc(itemsRef, id));
+    }
+
+    function renderItems(snapshot) {
+      const table = $("itemTable");
+      table.innerHTML = "";
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const expired = [], soon = [], fresh = [];
+
+      snapshot.forEach(docSnap => {
+        const item = docSnap.data();
+        const id = docSnap.id;
+        const expiryDate = new Date(item.expiry);
+        const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+        let status = "", rowClass = "";
+        if (expiryDate < today) {
+          status = "Scaduto"; rowClass = "expired"; expired.push({ id, item, rowClass, status });
+        } else if (daysLeft <= 1) {
+          status = "In Scadenza"; rowClass = "expiring-soon"; soon.push({ id, item, rowClass, status });
+        } else {
+          status = `${daysLeft} giorni rimasti`; fresh.push({ id, item, rowClass, status });
+        }
+      });
+
+      [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
+        const row = document.createElement("tr");
+        row.className = rowClass;
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${formatDate(item.prepared)}</td>
+          <td>${formatDate(item.expiry)}</td>
+          <td>${status}</td>
+          <td>
+            <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+            <button onclick='deleteItem("${id}")'>🗑️</button>
+          </td>`;
+        table.appendChild(row);
+      });
+    }
+
+    function renderNames(snapshot) {
+      const list = $("productList");
+      list.innerHTML = "";
+      snapshot.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.data().name;
+        list.appendChild(opt);
+      });
+    }
+
+    function showApp() {
+      $("loginBox").style.display = "none";
+      $("mainApp").style.display = "block";
+      const btn = document.createElement("button");
+      btn.textContent = "Esci";
+      btn.className = "logout-btn";
+      btn.onclick = () => { localStorage.clear(); location.reload(); };
+      document.body.appendChild(btn);
+
+      onSnapshot(itemsRef, renderItems);
+      onSnapshot(namesRef, renderNames);
+    }
+
+    if (localStorage.getItem("loggedIn") === "yes") showApp();
+    window.checkLogin = checkLogin;
+    window.addItem = addItem;
+    window.editItem = editItem;
+    window.deleteItem = deleteItem;
+  </script>
+</head>
+<body>
+  <div id="loginBox">
+    <h2>🔐 Accesso Amministratore</h2>
+    <input id="username" placeholder="Username" />
+    <input id="password" type="password" placeholder="Password" />
+    <button onclick="checkLogin()">Accedi</button>
+  </div>
+
+  <div id="mainApp" style="display:none;">
+    <div class="container">
+      <h2>🍲 Tracciatore Alimenti</h2>
+      <form onsubmit="event.preventDefault(); addItem();">
+        <input list="productList" id="itemName" placeholder="Nome prodotto" />
+        <datalist id="productList"></datalist>
+        <input id="datePrepared" type="date" />
+        <input id="expiryDate" type="date" />
+        <button type="submit">Aggiungi Prodotto</button>
+      </form>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Preparato</th>
+            <th>Scadenza</th>
+            <th>Stato</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="itemTable"></tbody>
+      </table>
+    </div>
+  </div>
 </body>
 </html>
