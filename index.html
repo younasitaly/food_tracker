@@ -92,6 +92,8 @@
   .action-btn:hover {
     opacity: 0.7;
   }
+
+  /* FIXED SMALL LOGOUT BUTTON top right */
   #logoutBtn {
     position: fixed;
     top: 15px;
@@ -106,7 +108,10 @@
     box-shadow: 0 3px 8px rgb(229 57 53 / 0.6);
     z-index: 1000;
     display: none;
+    max-width: 100px;
+    white-space: nowrap;
   }
+
   @media (max-width: 520px) {
     body {
       padding: 12px;
@@ -206,7 +211,10 @@
 
   // ====== Food items logic ======
 
-  // Use localStorage for demo purposes; replace with Firebase logic if needed
+  // Use your exact localStorage keys to avoid data loss:
+  // Adjust here if your keys are different
+  const LS_FOOD_ITEMS = 'foodItems';
+  const LS_PRODUCT_NAMES = 'productNames';
 
   const itemTable = document.getElementById('itemTable');
   const addForm = document.getElementById('addForm');
@@ -215,12 +223,26 @@
   const expiryDateInput = document.getElementById('expiryDate');
   const productList = document.getElementById('productList');
 
-  let foodItems = JSON.parse(localStorage.getItem('foodItems') || '[]');
-  let productNames = JSON.parse(localStorage.getItem('productNames') || '[]');
+  // Read saved data, or empty arrays if none
+  let foodItems = [];
+  let productNames = [];
+
+  try {
+    const savedFood = localStorage.getItem(LS_FOOD_ITEMS);
+    foodItems = savedFood ? JSON.parse(savedFood) : [];
+  } catch {
+    foodItems = [];
+  }
+  try {
+    const savedProducts = localStorage.getItem(LS_PRODUCT_NAMES);
+    productNames = savedProducts ? JSON.parse(savedProducts) : [];
+  } catch {
+    productNames = [];
+  }
 
   function saveData() {
-    localStorage.setItem('foodItems', JSON.stringify(foodItems));
-    localStorage.setItem('productNames', JSON.stringify(productNames));
+    localStorage.setItem(LS_FOOD_ITEMS, JSON.stringify(foodItems));
+    localStorage.setItem(LS_PRODUCT_NAMES, JSON.stringify(productNames));
   }
 
   function renderProductNames() {
@@ -308,13 +330,18 @@
     if (newPrepared === null) return;
     const newExpiry = prompt('Modifica data di scadenza (AAAA-MM-GG):', item.expiry);
     if (newExpiry === null) return;
+
     if (!newName.trim() || !newPrepared.trim() || !newExpiry.trim()) {
-      alert('I campi non possono essere vuoti.');
+      alert('Tutti i campi sono obbligatori.');
       return;
     }
-    foodItems[index] = { name: newName.trim(), prepared: newPrepared.trim(), expiry: newExpiry.trim() };
-    if (!productNames.includes(newName.trim())) {
-      productNames.push(newName.trim());
+
+    item.name = newName.trim();
+    item.prepared = newPrepared.trim();
+    item.expiry = newExpiry.trim();
+
+    if (!productNames.includes(item.name)) {
+      productNames.push(item.name);
       renderProductNames();
     }
     saveData();
@@ -326,6 +353,5 @@
   renderProductNames();
   renderItems();
 </script>
-
 </body>
 </html>
