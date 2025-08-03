@@ -15,13 +15,11 @@
       padding: 0;
       background: linear-gradient(to right, #f8f9fa, #e9ecef);
     }
-
     h2 {
       text-align: center;
       color: #2e7d32;
       margin-bottom: 20px;
     }
-
     input, button {
       width: 100%;
       padding: 10px;
@@ -31,7 +29,6 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
-
     button {
       background-color: #4CAF50;
       color: white;
@@ -40,11 +37,9 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-
     button:hover {
       background-color: #388e3c;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -53,26 +48,37 @@
       border-radius: 10px;
       overflow: hidden;
     }
-
     th, td {
       border: 1px solid #ddd;
       padding: 8px;
       font-size: 14px;
       text-align: center;
     }
-
     th {
       background: #f0f0f0;
     }
-
     .expired {
       background-color: #ffcccc;
+      transition: background 0.3s;
     }
-
+    .expired.viola {
+      background-color: #c38bfc !important; /* Nice purple */
+    }
     .expiring-soon {
       background-color: #fff3cd;
     }
-
+    .viola-label {
+      display: inline-block;
+      background: #a259d9;
+      color: white;
+      font-size: 12px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      margin-left: 5px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      vertical-align: middle;
+    }
     #loginBox {
       max-width: 350px;
       margin: 80px auto;
@@ -81,14 +87,12 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-
     .logout-btn-wrapper {
       position: fixed;
       top: 10px;
       right: 10px;
       z-index: 1000;
     }
-
     .logout-btn {
       background: #f44336;
       color: white;
@@ -98,7 +102,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     .container {
       max-width: 700px;
       margin: 80px auto 40px;
@@ -107,28 +110,23 @@
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     }
-
     td button {
       margin: 0 2px;
       padding: 4px 8px;
       font-size: 14px;
     }
-
     @media (max-width: 600px) {
       th, td {
         font-size: 12px;
         padding: 4px;
       }
-
       input, button {
         font-size: 14px;
       }
-
       .container {
         margin: 60px 10px 20px;
         padding: 15px;
       }
-
       td button {
         font-size: 12px;
         padding: 3px 6px;
@@ -147,7 +145,7 @@
 
     function setupFirebase() {
       import("https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js").then(({ initializeApp }) => {
-        import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js").then(({ getFirestore, collection, addDoc, deleteDoc, doc, setDoc, onSnapshot }) => {
+        import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js").then(({ getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc, onSnapshot, getDoc }) => {
 
           const firebaseConfig = {
             apiKey: "AIzaSyAVmsiSzszfgCEk5qqnX57pGigoQtUafAU",
@@ -175,7 +173,7 @@
             const prepared = $("datePrepared").value;
             const expiry = $("expiryDate").value;
             if (!name || !prepared || !expiry) return alert("Completa tutti i campi");
-            await addDoc(itemsRef, { name, prepared, expiry });
+            await addDoc(itemsRef, { name, prepared, expiry, viola: false });
             await setDoc(doc(namesRef, name), { name });
             $("itemName").value = "";
             $("datePrepared").value = new Date().toISOString().split("T")[0];
@@ -187,13 +185,17 @@
             const newPrepared = prompt("Modifica data di preparazione", item.prepared);
             const newExpiry = prompt("Modifica data di scadenza", item.expiry);
             if (newName && newPrepared && newExpiry) {
-              setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry });
+              setDoc(doc(itemsRef, id), { name: newName, prepared: newPrepared, expiry: newExpiry, viola: item.viola || false });
               setDoc(doc(namesRef, newName), { name: newName });
             }
           };
 
           window.deleteItem = function (id) {
             if (confirm("Vuoi eliminare questo prodotto?")) deleteDoc(doc(itemsRef, id));
+          };
+
+          window.toggleViola = async function(id, currentViola) {
+            await updateDoc(doc(itemsRef, id), { viola: !currentViola });
           };
 
           function renderItems(snapshot) {
@@ -209,11 +211,13 @@
               const id = docSnap.id;
               const expiryDate = new Date(item.expiry);
               const daysLeft = Math.floor((expiryDate - today) / (1000 * 60 * 60 * 24));
+              const isViola = item.viola === true;
 
               let status = "", rowClass = "";
               if (expiryDate < today) {
                 status = "Scaduto";
                 rowClass = "expired";
+                if (isViola) rowClass += " viola";
                 expired.push({ id, item, rowClass, status });
               } else if (daysLeft <= 1) {
                 status = "In Scadenza";
@@ -232,15 +236,27 @@
             [...expired, ...soon, ...fresh].forEach(({ id, item, rowClass, status }) => {
               const row = document.createElement("tr");
               row.className = rowClass;
+              let actionButtons = `
+                <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
+                <button onclick='deleteItem("${id}")'>🗑️</button>
+              `;
+              let violaLabel = "";
+              if (rowClass.includes("expired")) {
+                // Viola/UnViola button and label only for expired
+                actionButtons += `
+                  <button onclick='toggleViola("${id}", ${!!item.viola})' style="background:#a259d9;">${item.viola ? "UnViola" : "Viola"}</button>
+                `;
+                if (item.viola) {
+                  violaLabel = `<span class="viola-label">Viola</span>`;
+                }
+              }
               row.innerHTML = `
                 <td>${item.name}</td>
                 <td>${formatDate(item.prepared)}</td>
                 <td>${formatDate(item.expiry)}</td>
-                <td>${status}</td>
-                <td>
-                  <button onclick='editItem("${id}", ${JSON.stringify(item)})'>✏️</button>
-                  <button onclick='deleteItem("${id}")'>🗑️</button>
-                </td>`;
+                <td>${status} ${violaLabel}</td>
+                <td>${actionButtons}</td>
+              `;
               table.appendChild(row);
             });
           }
